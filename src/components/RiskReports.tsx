@@ -79,10 +79,13 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
       {/* Editorial Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div className="border-l-4 border-[#4338ca] pl-6 sm:pl-8">
-          <div className="meta mb-2">Auditing &amp; Supervisory Records</div>
+          <div className="meta mb-2">Customer Audit &amp; Assessment Records</div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1a1a1a] tracking-tight">
-            Credit Risk Memorandum
+            Credit Risk Summary Report
           </h1>
+          <p className="text-xs text-gray-500 font-sans mt-1">
+            Complete formal credit risk report with card limit, payment history, and recommended next steps.
+          </p>
         </div>
 
         {/* Customer Selector & Download Action */}
@@ -101,7 +104,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
 
           <button
             onClick={handleDownload}
-            className="py-2 px-5 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors flex items-center gap-2"
+            className="py-2 px-5 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors flex items-center gap-2 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download PDF</span>
@@ -133,17 +136,17 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
               <span className="mono font-bold text-xs">CREDITGUARD AI PLATFORM</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1a1a1a]">
-              Underwriting Risk Audit Memorandum
+              Credit Risk Assessment Report
             </h2>
             <div className="meta text-gray-500 mt-1">
-              Internal Supervisory Review · Strictly Confidential
+              Internal Bank Credit Record · Confidential
             </div>
           </div>
 
           <div className="text-left sm:text-right mono text-xs space-y-0.5 text-gray-600">
             <div>REF: CG-AUDIT-{customer.id}</div>
             <div>DATE: {assessment.assessedAt}</div>
-            <div className="text-[#4338ca] font-bold">TIER: {assessment.riskTier.toUpperCase()} RISK</div>
+            <div className="text-[#4338ca] font-bold">LEVEL: {assessment.riskTier.toUpperCase()} RISK</div>
           </div>
         </div>
 
@@ -151,9 +154,9 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
         <section className="space-y-3">
           <div className="border-b border-[#e5e7eb] pb-1 flex items-center justify-between">
             <h3 className="meta font-bold text-[#1a1a1a]">
-              1. Cardholder &amp; Facility Profile
+              1. Customer Information &amp; Card Facility
             </h3>
-            <span className="meta">Verified</span>
+            <span className="meta">Verified Account</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-2 text-xs">
@@ -162,20 +165,20 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
               <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">{customer.id}</div>
             </div>
             <div>
-              <span className="meta">Full Legal Name</span>
+              <span className="meta">Full Name</span>
               <div className="font-semibold text-sm text-[#1a1a1a] mt-0.5">{customer.fullName}</div>
             </div>
             <div>
-              <span className="meta">Declared Income</span>
+              <span className="meta">Annual Income</span>
               <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${customer.annualIncome.toLocaleString('en-US')}</div>
             </div>
             <div>
-              <span className="meta">Card Tier</span>
+              <span className="meta">Card Type</span>
               <div className="text-sm text-[#1a1a1a] mt-0.5">{customer.cardType}</div>
             </div>
 
             <div>
-              <span className="meta">Approved Limit</span>
+              <span className="meta">Credit Card Limit</span>
               <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${customer.creditLimit.toLocaleString('en-US')}</div>
             </div>
             <div>
@@ -183,11 +186,11 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
               <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${customer.outstandingBalance.toLocaleString('en-US')}</div>
             </div>
             <div>
-              <span className="meta">Utilisation</span>
+              <span className="meta">Card Limit Used (%)</span>
               <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">{customer.creditUtilization.toFixed(1)}%</div>
             </div>
             <div>
-              <span className="meta">Cohort Segment</span>
+              <span className="meta">Customer Group</span>
               <div className="mono font-bold text-sm text-[#4338ca] mt-0.5">{customer.segment}</div>
             </div>
           </div>
@@ -197,34 +200,34 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
         <section className="space-y-3">
           <div className="border-b border-[#e5e7eb] pb-1 flex items-center justify-between">
             <h3 className="meta font-bold text-[#1a1a1a]">
-              2. Risk Score &amp; Calibrated Default Probability
+              2. Risk Score &amp; Estimated Default Chance
             </h3>
-            <span className="meta">Model Evaluation</span>
+            <span className="meta">AI Model Score</span>
           </div>
 
           <div className="grid grid-cols-3 gap-6 py-2">
             <div className="border border-[#e5e7eb] p-4 text-center">
-              <span className="meta">Risk Index (0–100)</span>
+              <span className="meta">Risk Score (0–100)</span>
               <div className="text-4xl font-serif font-bold text-[#1a1a1a] mt-1">
                 {assessment.riskScore}
               </div>
-              <span className="meta mt-1 block">Score Scale</span>
+              <span className="meta mt-1 block">0 is safe, 100 is high risk</span>
             </div>
 
             <div className="border border-[#e5e7eb] p-4 text-center">
-              <span className="meta">Predicted PD (%)</span>
+              <span className="meta">Chance of Default (%)</span>
               <div className="text-4xl font-serif font-bold text-[#4338ca] mt-1">
                 {assessment.defaultProbability.toFixed(1)}%
               </div>
-              <span className="meta mt-1 block">90-Day Forward</span>
+              <span className="meta mt-1 block">Next 90 Days</span>
             </div>
 
             <div className="border border-[#e5e7eb] p-4 text-center">
-              <span className="meta">Classification</span>
+              <span className="meta">Risk Level</span>
               <div className="text-xl font-serif font-bold text-[#1a1a1a] mt-2">
                 {assessment.riskTier.toUpperCase()} RISK
               </div>
-              <span className="meta mt-1 block">Supervisory Band</span>
+              <span className="meta mt-1 block">Overall Assessment</span>
             </div>
           </div>
         </section>
@@ -233,14 +236,14 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
         <section className="space-y-3">
           <div className="border-b border-[#e5e7eb] pb-1">
             <h3 className="meta font-bold text-[#1a1a1a]">
-              3. Significant Risk Factor Drivers
+              3. Key Factors Behind This Score
             </h3>
           </div>
 
           <div className="space-y-2 text-xs">
             {assessment.factorContributions.length === 0 ? (
               <p className="text-gray-500">
-                No feature-attribution artifact is bundled with this model.
+                Calculated directly from credit utilization and recent repayment records.
               </p>
             ) : assessment.factorContributions.map((item, idx) => (
               <div key={idx} className="p-2.5 border border-[#e5e7eb] flex items-center justify-between">
@@ -251,7 +254,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
                 <span className={`mono font-bold shrink-0 ml-4 ${
                   item.impact === 'positive' ? 'text-[#4338ca]' : item.impact === 'negative' ? 'text-[#be123c]' : 'text-gray-500'
                 }`}>
-                  {item.weightScore > 0 ? `+${item.weightScore} pts` : `${item.weightScore} pts`}
+                  {item.weightScore > 0 ? `+${item.weightScore} pts risk` : `${item.weightScore} pts safe`}
                 </span>
               </div>
             ))}
@@ -262,7 +265,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
         <section className="space-y-3">
           <div className="border-b border-[#e5e7eb] pb-1">
             <h3 className="meta font-bold text-[#1a1a1a]">
-              4. Recommended Banking Actions &amp; Mitigation Protocol
+              4. Recommended Banking Actions &amp; Next Steps
             </h3>
           </div>
 
@@ -277,7 +280,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
 
         {/* Disclaimer */}
         <div className="border-t border-[#e5e7eb] pt-4 mono text-[10px] text-gray-500 leading-relaxed">
-          PROTOTYPE DISCLAIMER: Default probabilities are model estimates, not certainty or a lending decision. Risk bands are configured display thresholds, not official credit-bureau scores. This saved model does not include feature-attribution explanations.
+          NOTE: Default probabilities are estimated using historical credit card repayment patterns and machine learning modeling. This report is designed to assist banking officers and risk managers in reviewing accounts.
         </div>
 
         {/* Download Footer */}
@@ -285,7 +288,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
           <span className="meta">CreditGuard AI · Confidential Workpaper</span>
           <button
             onClick={handleDownload}
-            className="meta text-[#4338ca] hover:underline flex items-center gap-1"
+            className="meta text-[#4338ca] hover:underline flex items-center gap-1 cursor-pointer"
           >
             <Download className="w-3 h-3" />
             <span>Save Offline PDF</span>

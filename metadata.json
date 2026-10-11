@@ -1,4 +1,4 @@
 {
   "name": "CreditGuard AI — Credit Card Risk Prediction & Assessment",
-  "description": "Professional banking web application for credit card portfolio monitoring, individual default risk assessment, early-warning alerts, customer segmentation, and executive audit reports."
+  "description": "Easy-to-use credit card risk application to monitor customer balances, predict default risk with machine learning (model.pkl), track early-warning alerts, and download audit reports."
 }

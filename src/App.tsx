@@ -16,16 +16,17 @@ import { RiskAssessment } from './components/RiskAssessment';
 import { EarlyWarningAlerts } from './components/EarlyWarningAlerts';
 import { CustomerSegmentation } from './components/CustomerSegmentation';
 import { RiskReports } from './components/RiskReports';
-import { Settings } from './components/Settings';
+import { ModelHubModal } from './components/ModelHubModal';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavPage>('dashboard');
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>(INITIAL_CUSTOMERS[0]?.id || 'CG-8041');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>(INITIAL_CUSTOMERS[0]?.id || 'CUST000001');
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
   const [config, setConfig] = useState<RiskConfig>(DEFAULT_RISK_CONFIG);
   const [activeAlertCount, setActiveAlertCount] = useState<number>(6);
   const [apiRefreshKey, setApiRefreshKey] = useState<number>(0);
   const [apiError, setApiError] = useState('');
+  const [isModelHubOpen, setIsModelHubOpen] = useState(false);
 
   // Load customer index for customer switcher and report menus
   useEffect(() => {
@@ -56,10 +57,6 @@ export default function App() {
     customers[0] ||
     INITIAL_CUSTOMERS[0];
 
-  const handleBackendModeChange = () => {
-    setApiRefreshKey((k) => k + 1);
-  };
-
   return (
     <div className="min-h-screen bg-[#fdfcf9] text-[#1a1a1a] flex flex-col font-sans">
       {/* Variation 3 Editorial Top Navigation */}
@@ -68,13 +65,14 @@ export default function App() {
         onNavigate={(page) => setCurrentPage(page)}
         onSelectCustomer={(id) => setSelectedCustomerId(id)}
         activeAlertCount={activeAlertCount}
+        onOpenModelHub={() => setIsModelHubOpen(true)}
       />
 
       {/* Main Viewport Container */}
       <main className="flex-1 px-4 sm:px-8 lg:px-16 pt-8 pb-16 overflow-y-auto">
         {apiError && (
           <div role="alert" className="max-w-[1400px] mx-auto mb-6 border border-rose-300 bg-rose-50 p-4 text-sm text-rose-800">
-            Flask backend request failed: {apiError}. Confirm that the model and CSV are available, then refresh.
+            Backend request failed: {apiError}. Check connection settings or use the local demo proxy.
           </div>
         )}
         {currentPage === 'dashboard' && (
@@ -82,6 +80,7 @@ export default function App() {
             config={config}
             onNavigate={(page) => setCurrentPage(page)}
             onSelectCustomer={(id) => setSelectedCustomerId(id)}
+            onOpenModelHub={() => setIsModelHubOpen(true)}
           />
         )}
 
@@ -128,15 +127,13 @@ export default function App() {
             onNavigate={(page) => setCurrentPage(page)}
           />
         )}
-
-        {currentPage === 'settings' && (
-          <Settings
-            config={config}
-            onUpdateConfig={(newConfig) => setConfig(newConfig)}
-            onBackendModeChange={handleBackendModeChange}
-          />
-        )}
       </main>
+
+      {/* Model & Dataset Inspection Modal */}
+      <ModelHubModal
+        isOpen={isModelHubOpen}
+        onClose={() => setIsModelHubOpen(false)}
+      />
     </div>
   );
 }

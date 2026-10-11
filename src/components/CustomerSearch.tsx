@@ -4,7 +4,8 @@ import {
   AlertCircle, 
   ArrowRight, 
   FileText, 
-  RefreshCw
+  RefreshCw,
+  Download
 } from 'lucide-react';
 import { Customer, RiskConfig, RiskTier, PredictionResponse } from '../types';
 import { api } from '../services/api';
@@ -24,7 +25,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTierFilter, setSelectedTierFilter] = useState<'All' | RiskTier>('All');
   const [selectedCardFilter, setSelectedCardFilter] = useState<string>('All');
-  const [activeCustomerId, setActiveCustomerId] = useState<string>('CG-8041');
+  const [activeCustomerId, setActiveCustomerId] = useState<string>('CUST000001');
   
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [activePrediction, setActivePrediction] = useState<PredictionResponse | null>(null);
@@ -87,6 +88,52 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
     setActiveCustomerId(id);
   };
 
+  const handleDownloadDatasetCsv = () => {
+    if (customers.length === 0) return;
+    const headers = [
+      'customer_id',
+      'full_name',
+      'age',
+      'annual_income',
+      'card_type',
+      'credit_limit',
+      'outstanding_balance',
+      'credit_utilization_pct',
+      'delayed_payments_6m',
+      'payment_to_min_ratio',
+      'monthly_average_spend',
+      'credit_history_years',
+      'segment',
+      'joined_date'
+    ];
+
+    const rows = customers.map((c) => [
+      c.id,
+      `"${c.fullName}"`,
+      c.age,
+      c.annualIncome,
+      `"${c.cardType}"`,
+      c.creditLimit,
+      c.outstandingBalance,
+      c.creditUtilization,
+      c.delayedPayments6M,
+      c.paymentToMinRatio,
+      c.monthlyAverageSpend,
+      c.creditHistoryYears,
+      `"${c.segment}"`,
+      c.joinedDate
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'combined_credit_risk_realistic_with_ids.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const isInvalidSearch = searchTerm.trim().length > 0 && customers.length === 0 && !loadingList;
 
   return (
@@ -94,52 +141,47 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
       {/* Editorial Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div className="border-l-4 border-[#4338ca] pl-6 sm:pl-8">
-          <div className="meta mb-2">Accounts Registry — Database Index</div>
+          <div className="meta mb-2">Customer Directory — 200 Card Accounts</div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1a1a1a] tracking-tight">
-            Customer Search & Dossier
+            Customer Search &amp; Details
           </h1>
+          <p className="text-xs text-gray-500 font-sans mt-1">
+            Search 200 customer profiles. Click any cardholder to view balances, past payments, and default risk.
+          </p>
         </div>
 
-        {/* Minimal Search Area */}
-        <div className="w-full sm:w-80 flex flex-col">
-          <div className="border-b-2 border-[#1a1a1a] py-1.5 flex items-center justify-between">
-            <input
-              type="text"
-              placeholder="Search by ID or name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none w-full text-xs font-sans text-[#1a1a1a] placeholder-gray-400"
-            />
-            {searchTerm ? (
-              <button onClick={() => setSearchTerm('')} className="meta hover:text-[#4338ca]">
-                CLEAR
-              </button>
-            ) : (
-              <span className="meta text-gray-400">FIND</span>
-            )}
-          </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleDownloadDatasetCsv}
+            className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors flex items-center gap-2 cursor-pointer"
+            title="Download combined_credit_risk_realistic_with_ids.csv"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download Dataset CSV</span>
+          </button>
         </div>
       </header>
 
       {/* Quick Chips & Filter Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 py-3 border-y border-[#e5e7eb] text-xs">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="meta">Quick Test Accounts:</span>
+          <span className="meta">Sample Customers:</span>
           {[
-            { id: 'CG-8041', label: 'Prime' },
-            { id: 'CG-5520', label: 'Medium' },
-            { id: 'CG-9204', label: 'Watchlist' },
+            { id: 'CUST000001', label: 'Safe Spender (CUST000001)' },
+            { id: 'CUST000003', label: 'Late Payments (CUST000003)' },
+            { id: 'CUST000005', label: 'Carrying Balance (CUST000005)' },
+            { id: 'CUST000010', label: 'Near Card Limit (CUST000010)' },
           ].map(({ id, label }) => (
             <button
               key={id}
               onClick={() => handleTestIdClick(id)}
-              className={`mono text-[11px] px-2 py-0.5 border transition-colors ${
+              className={`mono text-[11px] px-2 py-0.5 border transition-colors cursor-pointer ${
                 activeCustomerId === id
                   ? 'bg-[#1a1a1a] text-white border-[#1a1a1a]'
                   : 'bg-white border-[#e5e7eb] hover:border-[#1a1a1a] text-[#1a1a1a]'
               }`}
             >
-              {id} <span className="opacity-70">({label})</span>
+              {label}
             </button>
           ))}
         </div>
@@ -151,10 +193,10 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
             onChange={(e) => setSelectedTierFilter(e.target.value as any)}
             className="bg-white border border-[#e5e7eb] py-1.5 px-3 text-xs text-[#1a1a1a] font-mono outline-none"
           >
-            <option value="All">All Risk Tiers</option>
-            <option value="Low">Low Risk</option>
-            <option value="Medium">Medium Risk</option>
-            <option value="High">High Risk</option>
+            <option value="All">All Risk Levels</option>
+            <option value="Low">Low Risk (Safe)</option>
+            <option value="Medium">Medium Risk (Watch)</option>
+            <option value="High">High Risk (Warning)</option>
           </select>
 
           <select
@@ -170,8 +212,8 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
 
       {isInvalidSearch && (
         <div className="p-4 border border-[#be123c] bg-rose-50/50 text-[#be123c] text-xs mono">
-          <span className="font-bold">QUERY FAILED: </span>
-          No cardholder record corresponds to "{searchTerm}". Select from the verified sample IDs above.
+          <span className="font-bold">NO MATCH: </span>
+          No customer found matching "{searchTerm}". Please choose from the sample customer buttons above or clear the search.
         </div>
       )}
 
@@ -181,20 +223,20 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
         <div className="lg:col-span-7 space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#1a1a1a]">
             <h2 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-              Indexed Accounts ({customers.length})
+              Customer Accounts ({customers.length})
             </h2>
-            <span className="meta">Select row to inspect</span>
+            <span className="meta">Click row to view profile</span>
           </div>
 
           <div className="overflow-x-auto max-h-[580px] overflow-y-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead className="sticky top-0 bg-[#fdfcf9] z-10">
                 <tr className="border-b-2 border-[#1a1a1a]">
-                  <th className="py-2.5 px-2 meta">ID / Name</th>
-                  <th className="py-2.5 px-2 meta">Balance &amp; Limit</th>
-                  <th className="py-2.5 px-2 meta">Utilisation</th>
-                  <th className="py-2.5 px-2 meta">Delinquency</th>
-                  <th className="py-2.5 px-2 meta text-right">Product</th>
+                  <th className="py-2.5 px-2 meta">Customer ID &amp; Name</th>
+                  <th className="py-2.5 px-2 meta">Current Balance &amp; Limit</th>
+                  <th className="py-2.5 px-2 meta">Card Used (%)</th>
+                  <th className="py-2.5 px-2 meta">Payment Track</th>
+                  <th className="py-2.5 px-2 meta text-right">Card Type</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e5e7eb]">
@@ -245,7 +287,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
             {/* Dossier Header */}
             <div className="border-b border-[#1a1a1a] pb-4 flex items-start justify-between">
               <div>
-                <span className="meta text-[#4338ca]">Entity Dossier</span>
+                <span className="meta text-[#4338ca]">Customer Profile</span>
                 <h3 className="text-2xl font-serif font-bold text-[#1a1a1a] mt-1">
                   {activeCustomer.fullName}
                 </h3>
@@ -260,7 +302,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
                 </div>
                 {activePrediction && (
                   <span className="meta text-[#4338ca] block">
-                    PD: {activePrediction.assessment.defaultProbability.toFixed(1)}%
+                    Default Risk: {activePrediction.assessment.defaultProbability.toFixed(1)}%
                   </span>
                 )}
               </div>
@@ -290,9 +332,9 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
               </div>
 
               <div className="border-b border-[#e5e7eb] pb-2">
-                <span className="meta">Paydown Velocity</span>
+                <span className="meta">Monthly Payment Habit</span>
                 <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">
-                  {activeCustomer.paymentToMinRatio.toFixed(1)}x coverage
+                  {activeCustomer.paymentToMinRatio.toFixed(1)}x required min
                 </div>
               </div>
             </div>
@@ -300,7 +342,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
             {/* 6-Month Repayment Cycle */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="meta">6-Month Delinquency Log</span>
+                <span className="meta">6-Month Payment Track</span>
                 <span className="mono text-[10px] text-gray-400">{activeCustomer.delayedPayments6M} delays total</span>
               </div>
               <div className="grid grid-cols-6 gap-1 text-center">
@@ -314,7 +356,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
                     }`}
                   >
                     <div className="text-[8px] text-gray-400">{rep.month.split(' ')[0]}</div>
-                    <div className="mt-0.5">{rep.status === 'on-time' ? 'OK' : `${rep.daysDelayed}d`}</div>
+                    <div className="mt-0.5">{rep.status === 'on-time' ? 'OK' : `${rep.daysDelayed}d late`}</div>
                   </div>
                 ))}
               </div>
@@ -327,9 +369,9 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
                   onSelectCustomer(activeCustomer.id);
                   onNavigate('assessment');
                 }}
-                className="flex-1 py-2.5 px-4 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 px-4 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Full Analysis</span>
+                <span>Risk Breakdown</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
@@ -338,9 +380,9 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
                   onSelectCustomer(activeCustomer.id);
                   onNavigate('reports');
                 }}
-                className="py-2.5 px-4 border border-[#1a1a1a] hover:border-[#4338ca] hover:text-[#4338ca] text-[#1a1a1a] mono text-xs uppercase tracking-wider transition-colors"
+                className="py-2.5 px-4 border border-[#1a1a1a] hover:border-[#4338ca] hover:text-[#4338ca] text-[#1a1a1a] mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
               >
-                Report
+                View Report
               </button>
             </div>
           </div>

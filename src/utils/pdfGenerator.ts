@@ -40,7 +40,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setTextColor(20, 33, 61);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('1. CARDHOLDER IDENTIFICATION & FACILITY STRUCTURE', margin, y);
+  doc.text('1. CUSTOMER INFORMATION & CREDIT CARD ACCOUNT', margin, y);
   y += 2;
 
   doc.setDrawColor(215, 222, 235);
@@ -74,34 +74,34 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
 
   // Row 2
   doc.setTextColor(100, 116, 139);
-  doc.text('Full Legal Name:', col1, y + 13);
+  doc.text('Customer Name:', col1, y + 13);
   doc.setTextColor(15, 23, 42);
   doc.text(customer.fullName, col2, y + 13);
 
   doc.setTextColor(100, 116, 139);
-  doc.text('Card Product Tier:', col3, y + 13);
+  doc.text('Card Product Type:', col3, y + 13);
   doc.setTextColor(15, 23, 42);
   doc.text(customer.cardType, col4, y + 13);
 
   // Row 3
   doc.setTextColor(100, 116, 139);
-  doc.text('Credit Facility Limit:', col1, y + 20);
+  doc.text('Credit Card Limit:', col1, y + 20);
   doc.setTextColor(15, 23, 42);
   doc.text(`$${customer.creditLimit.toLocaleString('en-US')}`, col2, y + 20);
 
   doc.setTextColor(100, 116, 139);
-  doc.text('Outstanding Balance:', col3, y + 20);
+  doc.text('Current Balance:', col3, y + 20);
   doc.setTextColor(15, 23, 42);
   doc.text(`$${customer.outstandingBalance.toLocaleString('en-US')}`, col4, y + 20);
 
   // Row 4
   doc.setTextColor(100, 116, 139);
-  doc.text('Credit Line Utilization:', col1, y + 26);
+  doc.text('Card Limit Used (%):', col1, y + 26);
   doc.setTextColor(15, 23, 42);
   doc.text(`${customer.creditUtilization.toFixed(1)}%`, col2, y + 26);
 
   doc.setTextColor(100, 116, 139);
-  doc.text('Segment Assignment:', col3, y + 26);
+  doc.text('Customer Group:', col3, y + 26);
   doc.setTextColor(15, 23, 42);
   doc.text(customer.segment, col4, y + 26);
 
@@ -111,7 +111,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setTextColor(20, 33, 61);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('2. RISK CLASSIFICATION & DEFAULT PROBABILITY (PD)', margin, y);
+  doc.text('2. RISK SCORE & CHANCE OF DEFAULT', margin, y);
   y += 2;
   doc.line(margin, y, margin + contentWidth, y);
   y += 6;
@@ -181,7 +181,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setTextColor(20, 33, 61);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('3. UNDERWRITING RISK FACTOR ATTRIBUTIONS', margin, y);
+  doc.text('3. KEY FACTORS INFLUENCING THIS RISK SCORE', margin, y);
   y += 2;
   doc.line(margin, y, margin + contentWidth, y);
   y += 6;
@@ -194,7 +194,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setTextColor(71, 85, 105);
   doc.text('CATEGORY', margin + 3, y + 4.5);
   doc.text('FACTOR NAME', margin + 35, y + 4.5);
-  doc.text('DIRECTION', margin + 85, y + 4.5);
+  doc.text('IMPACT ON RISK', margin + 85, y + 4.5);
   doc.text('FINDING & DETAILS', margin + 115, y + 4.5);
   y += 7;
 
@@ -209,10 +209,10 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
     
     if (item.impact === 'positive') {
       doc.setTextColor(21, 154, 140);
-      doc.text('Mitigating (-)', margin + 85, y + 4);
+      doc.text('Lowers Risk (-)', margin + 85, y + 4);
     } else if (item.impact === 'negative') {
       doc.setTextColor(220, 38, 38);
-      doc.text('Elevating (+)', margin + 85, y + 4);
+      doc.text('Raises Risk (+)', margin + 85, y + 4);
     } else {
       doc.setTextColor(100, 116, 139);
       doc.text('Neutral (~)', margin + 85, y + 4);
@@ -233,7 +233,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setTextColor(20, 33, 61);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('4. BEHAVIORAL INDICATORS & DELINQUENCY LOG', margin, y);
+  doc.text('4. POSITIVE HABITS & WARNING FLAGS', margin, y);
   y += 2;
   doc.line(margin, y, margin + contentWidth, y);
   y += 5;
@@ -242,7 +242,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   if (assessment.negativeIndicators.length > 0) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(185, 28, 28);
-    doc.text('Early-Warning & Negative Risk Flags:', margin, y);
+    doc.text('Warning & Risk Flags:', margin, y);
     y += 4;
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(51, 65, 85);
@@ -256,7 +256,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
     y += 1;
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(15, 118, 110);
-    doc.text('Credit Sustaining Positive Indicators:', margin, y);
+    doc.text('Positive Credit Habits:', margin, y);
     y += 4;
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(51, 65, 85);
@@ -268,11 +268,11 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
 
   y += 3;
 
-  // Section 5: Committee Action Guidance
+  // Section 5: Recommended Action
   doc.setTextColor(20, 33, 61);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('5. RECOMMENDED BANKING ACTION PROTOCOL', margin, y);
+  doc.text('5. RECOMMENDED NEXT STEPS', margin, y);
   y += 2;
   doc.line(margin, y, margin + contentWidth, y);
   y += 5;

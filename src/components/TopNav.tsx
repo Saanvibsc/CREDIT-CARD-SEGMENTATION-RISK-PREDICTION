@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, X, ArrowRight } from 'lucide-react';
+import { Search, Bell, Menu, X, ArrowRight, Cpu, Download } from 'lucide-react';
 import { NavPage } from './Sidebar';
 import { Customer } from '../types';
 import { api } from '../services/api';
@@ -9,16 +9,16 @@ interface TopNavProps {
   onNavigate: (page: NavPage) => void;
   onSelectCustomer: (customerId: string) => void;
   activeAlertCount: number;
+  onOpenModelHub?: () => void;
 }
 
 const NAV_ITEMS: { id: NavPage; label: string }[] = [
-  { id: 'dashboard', label: 'Portfolio' },
-  { id: 'search', label: 'Registry' },
-  { id: 'assessment', label: 'Analysis' },
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'search', label: 'Search Customers' },
+  { id: 'assessment', label: 'Risk Analysis' },
   { id: 'alerts', label: 'Alerts' },
-  { id: 'segmentation', label: 'Segments' },
+  { id: 'segmentation', label: 'Customer Groups' },
   { id: 'reports', label: 'Reports' },
-  { id: 'settings', label: 'Settings' },
 ];
 
 export const TopNav: React.FC<TopNavProps> = ({
@@ -26,6 +26,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   onNavigate,
   onSelectCustomer,
   activeAlertCount,
+  onOpenModelHub,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuickResults, setShowQuickResults] = useState(false);
@@ -63,23 +64,23 @@ export const TopNav: React.FC<TopNavProps> = ({
       <div className="flex items-center gap-6">
         <button 
           onClick={() => onNavigate('dashboard')}
-          className="flex items-center gap-2.5 text-left focus:outline-none group"
+          className="flex items-center gap-2.5 text-left focus:outline-none group cursor-pointer"
         >
           <div className="w-4 h-4 border-2 border-[#1a1a1a] rotate-45 transition-transform group-hover:rotate-90 duration-300" />
           <span className="mono font-bold text-sm tracking-tight text-[#1a1a1a]">
-            CG.AI
+            CreditGuard AI
           </span>
         </button>
 
         {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-6 lg:gap-8 ml-2">
+        <div className="hidden md:flex items-center gap-5 lg:gap-7 ml-2">
           {NAV_ITEMS.map((item) => {
             const isActive = currentPage === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`text-[11px] font-semibold tracking-wider uppercase transition-colors relative py-1 ${
+                className={`text-[12px] font-semibold tracking-wide transition-colors relative py-1 cursor-pointer ${
                   isActive
                     ? 'text-[#4338ca]'
                     : 'text-[#6b7280] hover:text-[#1a1a1a]'
@@ -100,14 +101,14 @@ export const TopNav: React.FC<TopNavProps> = ({
         </div>
       </div>
 
-      {/* Right: Search + Desk Meta + Mobile Toggle */}
-      <div className="flex items-center gap-4">
+      {/* Right: Search + Model & Data Hub + Mobile Toggle */}
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Quick Search */}
-        <div className="relative w-36 sm:w-56 hidden sm:block">
+        <div className="relative w-36 sm:w-52 hidden sm:block">
           <div className="border-b-2 border-[#1a1a1a] flex items-center justify-between pb-1">
             <input
               type="text"
-              placeholder="Search customer ID..."
+              placeholder="Search customer ID or name..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -130,7 +131,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                   <button
                     key={c.id}
                     onClick={() => handleSelect(c.id)}
-                    className="w-full text-left px-3 py-2 text-xs hover:bg-[#fdfcf9] flex items-center justify-between transition-colors border-b border-gray-100 last:border-none"
+                    className="w-full text-left px-3 py-2 text-xs hover:bg-[#fdfcf9] flex items-center justify-between transition-colors border-b border-gray-100 last:border-none cursor-pointer"
                   >
                     <div>
                       <span className="mono font-bold text-[#1a1a1a]">{c.id}</span>
@@ -141,31 +142,30 @@ export const TopNav: React.FC<TopNavProps> = ({
                 ))
               ) : (
                 <div className="px-3 py-2 text-xs text-gray-400 text-center">
-                  No records
+                  No matching customers found
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Engine mode status */}
-        <button
-          onClick={() => onNavigate('settings')}
-          className="meta hidden lg:inline-block border border-[#e5e7eb] px-2 py-1 bg-white hover:border-[#4338ca] transition-colors"
-          title="Engine Configuration"
-        >
-          {apiConfig.mode === 'live' ? 'LIVE BACKEND' : 'DEMO PROXY'}
-        </button>
-
-        {/* Risk Officer Desk Meta */}
-        <div className="meta hidden md:block text-[#6b7280]">
-          Risk Officer Desk
-        </div>
+        {/* Model & Dataset Hub Button */}
+        {onOpenModelHub && (
+          <button
+            onClick={onOpenModelHub}
+            className="px-3 py-1.5 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-[11px] uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Inspect trained model.pkl and download dataset CSVs"
+          >
+            <Cpu className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Model &amp; Data</span>
+            <span className="sm:hidden">Files</span>
+          </button>
+        )}
 
         {/* Mobile menu hamburger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-1.5 text-[#1a1a1a] hover:text-[#4338ca]"
+          className="md:hidden p-1.5 text-[#1a1a1a] hover:text-[#4338ca] cursor-pointer"
           aria-label="Toggle Navigation"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -178,7 +178,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           <div className="border-b-2 border-[#1a1a1a] pb-1 flex items-center">
             <input
               type="text"
-              placeholder="Search customer ID..."
+              placeholder="Search customer ID or name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent text-xs text-[#1a1a1a] outline-none w-full font-sans"
@@ -206,9 +206,23 @@ export const TopNav: React.FC<TopNavProps> = ({
                 )}
               </button>
             ))}
+
+            {onOpenModelHub && (
+              <button
+                onClick={() => {
+                  onOpenModelHub();
+                  setMobileMenuOpen(false);
+                }}
+                className="text-left text-xs uppercase tracking-wider py-2 px-1 font-semibold text-[#4338ca] flex items-center gap-2 border-t border-gray-200 mt-2 pt-2"
+              >
+                <Cpu className="w-3.5 h-3.5" />
+                <span>Model &amp; Datasets (model.pkl)</span>
+              </button>
+            )}
           </div>
         </div>
       )}
     </nav>
   );
 };
+

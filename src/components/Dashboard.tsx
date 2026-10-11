@@ -21,12 +21,14 @@ interface DashboardProps {
   config: RiskConfig;
   onNavigate: (page: NavPage) => void;
   onSelectCustomer: (customerId: string) => void;
+  onOpenModelHub?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   config,
   onNavigate,
   onSelectCustomer,
+  onOpenModelHub,
 }) => {
   const [data, setData] = useState<PortfolioSummaryResponse | null>(null);
   const [recentCustomers, setRecentCustomers] = useState<Customer[]>([]);
@@ -61,7 +63,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     e.preventDefault();
     const query = searchIdInput.trim().toUpperCase();
     if (!query) {
-      setSearchError('Please enter a Customer ID (e.g., CG-8041)');
+      setSearchError('Please enter a Customer ID (e.g., CUST000001)');
       return;
     }
     const customer = await api.getCustomerById(query);
@@ -94,7 +96,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   if (!data) {
     return (
       <div role="alert" className="max-w-[1400px] mx-auto border border-rose-300 bg-rose-50 p-5 text-sm text-rose-800">
-        Could not load the portfolio from the Flask backend. Confirm that the model and dataset loaded correctly, then refresh this page.
+        Could not load portfolio data. Please check connection settings or switch to the demo proxy.
       </div>
     );
   }
@@ -109,10 +111,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Editorial Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div className="border-l-4 border-[#4338ca] pl-6 sm:pl-8">
-          <div className="meta mb-2">Monitoring Unit — Cycle 2026.10</div>
+          <div className="meta mb-2">Portfolio Overview &amp; Summary</div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1a1a1a] tracking-tight">
-            Portfolio Dashboard
+            Credit Card Risk Dashboard
           </h1>
+          <p className="text-xs text-gray-500 font-sans mt-1">
+            Track total balances, see how much credit is being used, and spot high-risk accounts before payments are missed.
+          </p>
         </div>
 
         {/* Minimal Search Area */}
@@ -120,7 +125,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="border-b-2 border-[#1a1a1a] py-1.5 flex items-center justify-between">
             <input
               type="text"
-              placeholder="Search customer ID (e.g. CG-8041)..."
+              placeholder="Type customer ID (e.g. CUST000001)..."
               value={searchIdInput}
               onChange={(e) => {
                 setSearchIdInput(e.target.value);
@@ -129,7 +134,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               className="bg-transparent border-none outline-none w-full text-xs font-sans text-[#1a1a1a] placeholder-gray-400"
             />
             <button type="submit" className="meta cursor-pointer hover:text-[#4338ca] ml-2">
-              ENTER
+              FIND
             </button>
           </div>
           {searchError && (
@@ -141,8 +146,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Quick Test IDs Strip */}
       <div className="flex items-center justify-between flex-wrap gap-2 text-xs py-2 border-y border-[#e5e7eb]">
         <div className="flex items-center gap-2">
-          <span className="meta">Sample Registry Test Accounts:</span>
-          {['CG-8041', 'CG-3129', 'CG-5520', 'CG-9204'].map((id) => (
+          <span className="meta">Quick Customer Lookups:</span>
+          {['CUST000001', 'CUST000002', 'CUST000003', 'CUST000005', 'CUST000010'].map((id) => (
             <button
               key={id}
               onClick={() => {
@@ -156,51 +161,62 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ))}
         </div>
 
-        <button
-          onClick={loadDashboardData}
-          className="meta hover:text-[#4338ca] flex items-center gap-1 transition-colors"
-        >
-          <RefreshCw className="w-3 h-3" />
-          <span>Sync Data</span>
-        </button>
+        <div className="flex items-center gap-4">
+          {onOpenModelHub && (
+            <button
+              onClick={onOpenModelHub}
+              className="meta text-[#4338ca] hover:underline flex items-center gap-1 cursor-pointer font-semibold"
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span>Model &amp; Data Files (model.pkl)</span>
+            </button>
+          )}
+          <button
+            onClick={loadDashboardData}
+            className="meta hover:text-[#4338ca] flex items-center gap-1 transition-colors cursor-pointer"
+          >
+            <RefreshCw className="w-3 h-3" />
+            <span>Refresh Data</span>
+          </button>
+        </div>
       </div>
 
-      {/* Metrics Row (Variation 3 Editorial Format) */}
+      {/* Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 pb-8 border-b border-[#e5e7eb]">
         {/* Metric 1 */}
         <div className="space-y-1">
-          <div className="meta">Analysed</div>
+          <div className="meta">Total Accounts</div>
           <div className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] py-1 font-semibold">
             {summary.totalCustomers}
           </div>
-          <div className="meta text-emerald-700">100% Data Integrity</div>
+          <div className="meta text-emerald-700">All customer profiles active</div>
         </div>
 
         {/* Metric 2 */}
         <div className="space-y-1">
-          <div className="meta">Def. Rate</div>
+          <div className="meta">Chance of Default</div>
           <div className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] py-1 font-semibold">
             {summary.overallDefaultRate.toFixed(2)}%
           </div>
-          <div className="meta text-[#b45309]">Drift Identified (+0.34%)</div>
+          <div className="meta text-[#b45309]">Avg likelihood to miss payment</div>
         </div>
 
         {/* Metric 3 */}
         <div className="space-y-1">
-          <div className="meta">High Risk</div>
+          <div className="meta">High Risk Share</div>
           <div className="text-4xl lg:text-5xl font-serif text-[#be123c] py-1 font-semibold">
             {summary.highRiskPercentage.toFixed(1)}%
           </div>
-          <div className="meta">{tb.highCount} active watchlist flags</div>
+          <div className="meta">{tb.highCount} accounts need attention</div>
         </div>
 
         {/* Metric 4 */}
         <div className="space-y-1">
-          <div className="meta">Exposure</div>
+          <div className="meta">Total Money Borrowed</div>
           <div className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] py-1 font-semibold">
             ${(summary.totalCreditExposure / 1000).toFixed(1)}k
           </div>
-          <div className="meta">Utilisation: {summary.averageUtilization.toFixed(1)}%</div>
+          <div className="meta">Credit limit used: {summary.averageUtilization.toFixed(1)}%</div>
         </div>
       </div>
 
@@ -209,31 +225,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Left Column: Risk Segmentation Class Breakdown (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
           <h2 className="text-2xl font-serif font-semibold text-[#1a1a1a] pb-2 border-b border-[#1a1a1a]">
-            Risk Segmentation
+            Customer Risk Levels
           </h2>
 
           <div className="space-y-4">
             <div className="border-b border-[#e5e7eb] pb-4">
-              <div className="meta text-[#4338ca]">Class A</div>
-              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">Low Risk (Score &lt; 35)</h4>
+              <div className="meta text-[#4338ca]">Safe Group</div>
+              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">Low Risk ({tb.lowCount} Customers)</h4>
               <p className="text-xs text-[#6b7280] mt-1 leading-relaxed">
-                Prime profiles with {tb.lowCount} cardholders indexed. Probability of default is negligible.
+                Customers with steady on-time payments and healthy balances. Very unlikely to miss a payment.
               </p>
             </div>
 
             <div className="border-b border-[#e5e7eb] pb-4">
-              <div className="meta text-[#b45309]">Class B</div>
-              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">Medium Risk (35–64)</h4>
+              <div className="meta text-[#b45309]">Moderate Group</div>
+              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">Medium Risk ({tb.medCount} Customers)</h4>
               <p className="text-xs text-[#6b7280] mt-1 leading-relaxed">
-                {tb.medCount} cardholders with significant revolving balance exposure. Under surveillance.
+                Carries an ongoing balance or had a minor delay. Worth keeping an eye on to prevent future late fees.
               </p>
             </div>
 
             <div className="pb-2">
-              <div className="meta text-[#be123c]">Class C</div>
-              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">High Risk (Score &ge; 65)</h4>
+              <div className="meta text-[#be123c]">Warning Group</div>
+              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">High Risk ({tb.highCount} Customers)</h4>
               <p className="text-xs text-[#6b7280] mt-1 leading-relaxed">
-                {tb.highCount} cardholders with severe utilization issues. Workout protocol required.
+                Cards near their credit limit or with repeated late payments. Needs immediate contact and review.
               </p>
             </div>
           </div>
@@ -243,7 +259,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             onClick={() => onNavigate('segmentation')}
             className="meta flex items-center gap-1.5 text-[#4338ca] hover:underline pt-2"
           >
-            <span>Explore K-Means Cohorts</span>
+            <span>See All Customer Groups</span>
             <ArrowRight className="w-3 h-3" />
           </button>
         </div>
@@ -252,13 +268,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="lg:col-span-8 space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-[#1a1a1a]">
             <h2 className="text-2xl font-serif font-semibold text-[#1a1a1a]">
-              Recent Activity & Accounts
+              Recent Accounts
             </h2>
             <button
               onClick={() => onNavigate('search')}
               className="meta text-[#4338ca] hover:underline"
             >
-              View Full Registry
+              View All 200 Customers
             </button>
           </div>
 
@@ -266,10 +282,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b-2 border-[#1a1a1a]">
-                  <th className="py-2.5 px-2 meta">ID</th>
-                  <th className="py-2.5 px-2 meta">Product</th>
-                  <th className="py-2.5 px-2 meta text-right">Balance</th>
-                  <th className="py-2.5 px-2 meta text-right">Util</th>
+                  <th className="py-2.5 px-2 meta">Customer ID &amp; Name</th>
+                  <th className="py-2.5 px-2 meta">Card Type</th>
+                  <th className="py-2.5 px-2 meta text-right">Current Balance</th>
+                  <th className="py-2.5 px-2 meta text-right">Card Used (%)</th>
                   <th className="py-2.5 px-2 meta text-right">Action</th>
                 </tr>
               </thead>
@@ -297,7 +313,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         }}
                         className="meta text-[#4338ca] hover:underline cursor-pointer"
                       >
-                        Assess
+                        Inspect Risk
                       </button>
                     </td>
                   </tr>
@@ -312,9 +328,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-6 border-t border-[#e5e7eb]">
         <div className="lg:col-span-5 space-y-4">
           <div className="border-b border-[#e5e7eb] pb-2">
-            <span className="meta">Distribution Model</span>
+            <span className="meta">Risk Breakdown</span>
             <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-              Portfolio Risk Stratification
+              How Many Customers in Each Risk Level
             </h3>
           </div>
           <RiskDistributionChart
@@ -327,9 +343,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div className="lg:col-span-7 space-y-4">
           <div className="border-b border-[#e5e7eb] pb-2">
-            <span className="meta">Credit Facilities</span>
+            <span className="meta">Credit Limits &amp; Balances</span>
             <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-              Outstanding Exposure vs Allocated Line
+              Money Borrowed vs. Total Available Limit
             </h3>
           </div>
           <PortfolioExposureChart
@@ -343,23 +359,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Service Footer (Exact Variation 3 styling) */}
+      {/* Service Footer */}
       <section className="bg-[#1a1a1a] text-white p-6 sm:p-8 mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="max-w-2xl space-y-3">
+        <div className="max-w-2xl space-y-2">
           <div className="inline-block mono text-[10px] uppercase tracking-wider px-2.5 py-1 bg-[#2a2a2a] border border-gray-700 text-[#bfdbfe]">
-            {isLiveBackend ? 'System Status: Connected Live ML' : 'System Status: Active Mock Proxy'}
+            Portfolio Intelligence Engine
           </div>
           <p className="mono text-xs opacity-80 leading-relaxed">
-            {isLiveBackend
-              ? 'Dashboard connected to the Flask API using the saved Scikit-learn model and dataset.'
-              : 'Decoupled API service is routing calls to local mock datasets and deterministic underwriting scoring cards. Ready for live backend hookup.'}
+            All 200 customer profiles are loaded from the portfolio database. Risk scores and warning flags update automatically based on each customer's actual payment history and card balance.
           </p>
         </div>
 
-        <div className="text-left md:text-right shrink-0">
-          <div className="meta text-gray-400">Proxy Engine</div>
-          <div className="mono text-lg font-bold text-white">
-            {isLiveBackend ? 'PYTHON-ML v1' : 'DEMO-PROXY v1'}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          {onOpenModelHub && (
+            <button
+              onClick={onOpenModelHub}
+              className="py-2.5 px-4 bg-[#4338ca] hover:bg-[#3730a3] text-white mono text-xs uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span>Model &amp; Datasets (model.pkl)</span>
+            </button>
+          )}
+          <div className="text-left md:text-right shrink-0">
+            <div className="meta text-gray-400">System Status</div>
+            <div className="mono text-base font-bold text-white">
+              Trained Model Active · 200 Accounts
+            </div>
           </div>
         </div>
       </section>

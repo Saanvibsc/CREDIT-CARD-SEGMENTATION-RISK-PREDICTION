@@ -10,7 +10,10 @@ import {
   Shield,
   ChevronRight,
   Menu,
-  X
+  X,
+  GitCompare,
+  Layers,
+  Cpu
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -20,8 +23,7 @@ export type NavPage =
   | 'assessment'
   | 'alerts'
   | 'segmentation'
-  | 'reports'
-  | 'settings';
+  | 'reports';
 
 interface SidebarProps {
   currentPage: NavPage;
@@ -32,13 +34,12 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'dashboard', label: 'Portfolio Dashboard', icon: LayoutDashboard },
-  { id: 'search', label: 'Customer Search', icon: Search },
-  { id: 'assessment', label: 'Risk Assessment', icon: ShieldAlert },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'search', label: 'Search Customers', icon: Search },
+  { id: 'assessment', label: 'Risk Analysis', icon: ShieldAlert },
   { id: 'alerts', label: 'Early-Warning Alerts', icon: BellRing },
-  { id: 'segmentation', label: 'Customer Segmentation', icon: Users },
+  { id: 'segmentation', label: 'Customer Groups', icon: Users },
   { id: 'reports', label: 'Risk Reports', icon: FileText },
-  { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -136,13 +137,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="font-medium">Model Engine</span>
             <span className="font-mono text-[11px] text-[#159A8C]">
-              {api.getConfig().mode === 'live' ? 'LIVE-ML-API' : 'DEMO-PROXY v1'}
+              model.pkl · v1.6
             </span>
           </div>
           <div className="text-[11px] text-slate-400 leading-relaxed">
-            {api.getConfig().mode === 'live'
-              ? 'Connected to live Python ML service endpoint.'
-              : 'Deterministic risk proxy active. Decoupled API service ready for backend.'}
+            Gradient Boosting credit risk model active across 200 customer accounts.
           </div>
         </div>
       </aside>

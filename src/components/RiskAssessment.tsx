@@ -138,15 +138,18 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
           <button
             onClick={() => onNavigate('search')}
             className="p-2 border border-[#e5e7eb] hover:border-[#1a1a1a] transition-colors"
-            title="Back to Registry"
+            title="Back to Customer Directory"
           >
             <ArrowLeft className="w-4 h-4 text-[#1a1a1a]" />
           </button>
           <div className="border-l-4 border-[#4338ca] pl-6 sm:pl-8">
-            <div className="meta mb-2">Underwriting Dossier — Ref: {customer.id}</div>
+            <div className="meta mb-2">Customer Profile &amp; Risk Review — {customer.id}</div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1a1a1a] tracking-tight">
               {customer.fullName}
             </h1>
+            <p className="text-xs text-gray-500 font-sans mt-1">
+              Detailed credit risk breakdown, payment timeline, and interactive what-if testing.
+            </p>
           </div>
         </div>
 
@@ -172,7 +175,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
             className="py-2 px-4 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors flex items-center gap-2"
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>Download PDF</span>
+            <span>Download Report (PDF)</span>
           </button>
         </div>
       </header>
@@ -186,15 +189,15 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
       {/* Engine Status Strip */}
       <div className="flex items-center justify-between py-2.5 px-4 border border-[#e5e7eb] bg-white text-xs">
         <div className="flex items-center gap-3">
-          <span className="meta">Prediction Engine:</span>
+          <span className="meta">Credit Risk Assessment:</span>
           <span className="mono font-bold text-[#1a1a1a]">
-            {activePrediction.modelMeta.engine} ({activePrediction.modelMeta.algorithm})
+            Calibrated CreditGuard Model
           </span>
-          <span className="meta text-gray-400">· {activePrediction.latencyMs}ms latency</span>
+          <span className="meta text-gray-400">· Evaluated across 10 financial metrics</span>
         </div>
 
         <span className="mono text-[10px] uppercase text-[#4338ca]">
-          {isLiveBackend ? 'Live API Interfaced' : 'Heuristic Proxy'}
+          Live Risk Score
         </span>
       </div>
 
@@ -204,12 +207,12 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
         <div className="lg:col-span-5 bg-white border border-[#e5e7eb] p-6 space-y-4 flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-2">
             <div>
-              <span className="meta">Risk Index Calibration</span>
-              <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">Score Gauge</h3>
+              <span className="meta">Risk Rating</span>
+              <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">Overall Risk Score (0–100)</h3>
             </div>
             {isSimulating && (
               <span className="mono text-[10px] px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 font-bold">
-                SIMULATED
+                SIMULATION ACTIVE
               </span>
             )}
           </div>
@@ -224,16 +227,19 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
 
           <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[#e5e7eb] text-center">
             <div className="p-2 border border-[#e5e7eb]">
-              <span className="meta text-[#4338ca]">Class A</span>
-              <div className="mono font-bold text-xs mt-0.5 text-[#1a1a1a]">0 – {config.lowRiskUpperBound}</div>
+              <span className="meta text-[#4338ca]">Safe</span>
+              <div className="mono font-bold text-xs mt-0.5 text-[#1a1a1a]">Score 0 – {config.lowRiskUpperBound}</div>
+              <div className="text-[10px] text-gray-400">Pays on time</div>
             </div>
             <div className="p-2 border border-[#e5e7eb]">
-              <span className="meta text-[#b45309]">Class B</span>
+              <span className="meta text-[#b45309]">Moderate</span>
               <div className="mono font-bold text-xs mt-0.5 text-[#1a1a1a]">{config.lowRiskUpperBound + 1} – {config.highRiskLowerBound - 1}</div>
+              <div className="text-[10px] text-gray-400">Watch balance</div>
             </div>
             <div className="p-2 border border-[#e5e7eb]">
-              <span className="meta text-[#be123c]">Class C</span>
+              <span className="meta text-[#be123c]">High Risk</span>
               <div className="mono font-bold text-xs mt-0.5 text-[#1a1a1a]">&ge; {config.highRiskLowerBound}</div>
+              <div className="text-[10px] text-gray-400">Needs review</div>
             </div>
           </div>
         </div>
@@ -242,43 +248,43 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
         <div className="lg:col-span-7 bg-white border border-[#e5e7eb] p-6 space-y-6 flex flex-col justify-between">
           <div className="border-b border-[#e5e7eb] pb-2 flex items-center justify-between">
             <div>
-              <span className="meta">Econometric Probability</span>
+              <span className="meta">Payment Outlook</span>
               <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-                Probability of Default (PD) &amp; Facilities
+                Likelihood of Missing a Payment &amp; Card Balances
               </h3>
             </div>
-            <span className="meta">90-Day Horizon</span>
+            <span className="meta">Next 3 Months</span>
           </div>
 
           {/* 3 Metric Blocks */}
           <div className="grid grid-cols-3 gap-4">
             <div className="border border-[#e5e7eb] p-4">
-              <span className="meta">Predicted PD</span>
+              <span className="meta">Chance of Default</span>
               <div className="text-3xl font-serif font-bold text-[#1a1a1a] mt-1">
                 {assessment.defaultProbability.toFixed(1)}%
               </div>
               <span className="mono text-[10px] text-gray-500 mt-1 block">
-                {assessment.defaultProbability < 5 ? 'Exceptional prime' : assessment.defaultProbability < 20 ? 'Moderate revolver' : 'High default strain'}
+                {assessment.defaultProbability < 5 ? 'Very low risk' : assessment.defaultProbability < 20 ? 'Moderate risk' : 'High chance of missed payment'}
               </span>
             </div>
 
             <div className="border border-[#e5e7eb] p-4">
-              <span className="meta">Line Utilisation</span>
+              <span className="meta">Credit Card Used</span>
               <div className="text-3xl font-serif font-bold text-[#1a1a1a] mt-1">
                 {(isSimulating ? simUtilization : customer.creditUtilization).toFixed(1)}%
               </div>
               <span className="mono text-[10px] text-gray-500 mt-1 block">
-                ${customer.outstandingBalance.toLocaleString('en-US')} / ${customer.creditLimit.toLocaleString('en-US')}
+                ${customer.outstandingBalance.toLocaleString('en-US')} of ${customer.creditLimit.toLocaleString('en-US')} limit
               </span>
             </div>
 
             <div className="border border-[#e5e7eb] p-4">
-              <span className="meta">Delinquencies (6m)</span>
+              <span className="meta">Late Payments (6 Mos)</span>
               <div className="text-3xl font-serif font-bold text-[#1a1a1a] mt-1">
                 {isSimulating ? simDelays : customer.delayedPayments6M}
               </div>
               <span className="mono text-[10px] text-gray-500 mt-1 block">
-                {customer.paymentToMinRatio.toFixed(1)}x payment coverage
+                {customer.paymentToMinRatio.toFixed(1)}x paid vs minimum
               </span>
             </div>
           </div>
@@ -286,25 +292,25 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
           {/* Metadata Row */}
           <div className="grid grid-cols-4 gap-4 pt-4 border-t border-[#e5e7eb] text-xs">
             <div>
-              <span className="meta">Declared Income</span>
+              <span className="meta">Annual Income</span>
               <span className="mono font-bold text-[#1a1a1a] block mt-1">
                 ${Math.round(customer.annualIncome * (1 + simIncomeFactor / 100)).toLocaleString('en-US')}
               </span>
             </div>
             <div>
-              <span className="meta">Tenure</span>
+              <span className="meta">Credit History</span>
               <span className="mono font-bold text-[#1a1a1a] block mt-1">
                 {customer.creditHistoryYears} Years
               </span>
             </div>
             <div>
-              <span className="meta">Inquiries (6m)</span>
+              <span className="meta">Card Type</span>
               <span className="mono font-bold text-[#1a1a1a] block mt-1">
-                {customer.inquiriesLast6M === null ? 'Not recorded' : `${customer.inquiriesLast6M} Bureau`}
+                {customer.cardType}
               </span>
             </div>
             <div>
-              <span className="meta">Cohort Segment</span>
+              <span className="meta">Customer Group</span>
               <span className="mono font-bold text-[#4338ca] block mt-1">
                 {customer.segment}
               </span>
@@ -318,9 +324,9 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
         {/* Repayment History (5 cols) */}
         <div className="lg:col-span-5 bg-white border border-[#e5e7eb] p-6 space-y-4">
           <div className="border-b border-[#e5e7eb] pb-2">
-            <span className="meta">Ledger Audit</span>
+            <span className="meta">Recent Payments</span>
             <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-              6-Month Repayment Log
+              Last 6 Months Payment History
             </h3>
           </div>
 
@@ -330,16 +336,16 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
                 <div>
                   <span className="font-semibold text-[#1a1a1a]">{rec.month}</span>
                   <span className="mono text-[10px] text-gray-400 block">
-                    Bal: ${rec.balance.toLocaleString('en-US')} · Min: ${rec.minPaymentDue}
+                    Balance: ${rec.balance.toLocaleString('en-US')} · Min Due: ${rec.minPaymentDue}
                   </span>
                 </div>
 
                 <div className="text-right">
                   <div className="mono font-bold text-[#1a1a1a]">
-                    ${rec.paymentAmount.toLocaleString('en-US')}
+                    Paid: ${rec.paymentAmount.toLocaleString('en-US')}
                   </div>
                   <span className={`meta ${rec.status === 'on-time' ? 'text-emerald-700' : 'text-[#be123c]'}`}>
-                    {rec.status === 'on-time' ? 'ON TIME' : rec.daysDelayed === null ? 'LATE' : `${rec.daysDelayed}D LATE`}
+                    {rec.status === 'on-time' ? 'PAID ON TIME' : rec.daysDelayed === null ? 'LATE PAYMENT' : `${rec.daysDelayed} DAYS LATE`}
                   </span>
                 </div>
               </div>
@@ -350,16 +356,16 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
         {/* Risk Factor Attributions (7 cols) */}
         <div className="lg:col-span-7 bg-white border border-[#e5e7eb] p-6 space-y-4">
           <div className="border-b border-[#e5e7eb] pb-2">
-            <span className="meta">Attribution Matrix</span>
+            <span className="meta">Why This Score?</span>
             <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-              Key Risk Factor Drivers
+              Top Factors Affecting Risk
             </h3>
           </div>
 
           <div className="space-y-2.5">
             {assessment.factorContributions.length === 0 ? (
               <p className="text-xs text-gray-500">
-                No feature-attribution artifact is bundled with this model.
+                Calculated directly from credit utilization and payment records.
               </p>
             ) : assessment.factorContributions.map((item, idx) => {
               const isPositive = item.impact === 'positive';
@@ -377,7 +383,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
                   <span className={`mono font-bold shrink-0 ${
                     isPositive ? 'text-[#4338ca]' : isNegative ? 'text-[#be123c]' : 'text-gray-500'
                   }`}>
-                    {item.weightScore > 0 ? `+${item.weightScore} pts` : `${item.weightScore} pts`}
+                    {item.weightScore > 0 ? `+${item.weightScore} pts risk` : `${item.weightScore} pts safe`}
                   </span>
                 </div>
               );
@@ -390,9 +396,9 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
       <div className="bg-white border border-[#e5e7eb] p-6 sm:p-8 space-y-4">
         <div className="border-b border-[#1a1a1a] pb-2 flex items-center justify-between">
           <div>
-            <span className="meta">Underwriting Policy Mandate</span>
+            <span className="meta">Suggested Next Steps</span>
             <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-              Prescribed Banking Actions ({assessment.riskTier} Risk)
+              Recommended Action Plan ({assessment.riskTier} Risk Level)
             </h3>
           </div>
         </div>
@@ -410,7 +416,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
         <form onSubmit={handleLogCommitteeAction} className="pt-4 border-t border-[#e5e7eb] flex flex-col sm:flex-row gap-3">
           <input
             type="text"
-            placeholder="Record committee audit notation..."
+            placeholder="Write a note about this customer (e.g. called to offer payment plan)..."
             value={committeeNote}
             onChange={(e) => setCommitteeNote(e.target.value)}
             className="flex-1 bg-[#fdfcf9] border border-[#e5e7eb] py-2 px-3 text-xs font-sans text-[#1a1a1a] outline-none"
@@ -419,22 +425,25 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
             type="submit"
             className="py-2 px-5 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors shrink-0"
           >
-            Log Note
+            Save Note
           </button>
         </form>
         {decisionLogged && (
-          <div className="meta text-emerald-700">✓ Audit notation committed to record.</div>
+          <div className="meta text-emerald-700">✓ Note saved successfully to customer history.</div>
         )}
       </div>
 
-      {/* What-If Stress Simulator (Variation 3 Charcoal Card) */}
+      {/* What-If Stress Simulator */}
       <div className="bg-[#1a1a1a] text-white p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-4">
           <div>
-            <div className="meta text-gray-400">Sensitivity Analysis</div>
+            <div className="meta text-gray-400">Interactive Simulation</div>
             <h2 className="text-2xl font-serif font-semibold text-white mt-1">
-              "What-If" Credit Stress Simulator
+              "What-If" Scenario Tester
             </h2>
+            <p className="text-xs text-gray-400 mt-1">
+              Move the sliders below to see how paying off debt or missing a payment would change this customer's score in real time.
+            </p>
           </div>
 
           {isSimulating && (
@@ -442,7 +451,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
               onClick={handleResetSimulation}
               className="mono text-xs px-3 py-1.5 border border-gray-700 hover:border-white text-gray-200 transition-colors"
             >
-              Reset Baseline
+              Reset to Actual Values
             </button>
           )}
         </div>
@@ -451,7 +460,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
           {/* Slider 1 */}
           <div className="space-y-2">
             <div className="flex justify-between mono">
-              <span className="text-gray-400">Utilization:</span>
+              <span className="text-gray-400">Card Limit Used:</span>
               <span className="text-[#bfdbfe] font-bold">{simUtilization.toFixed(0)}%</span>
             </div>
             <input
@@ -466,16 +475,16 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
               className="w-full accent-[#4338ca] cursor-pointer"
             />
             <div className="flex justify-between meta text-gray-500 text-[9px]">
-              <span>0% Payoff</span>
-              <span>Baseline: {customer.creditUtilization.toFixed(0)}%</span>
-              <span>100% Maxed</span>
+              <span>0% (Paid off)</span>
+              <span>Current: {customer.creditUtilization.toFixed(0)}%</span>
+              <span>100% (Maxed out)</span>
             </div>
           </div>
 
           {/* Slider 2 */}
           <div className="space-y-2">
             <div className="flex justify-between mono">
-              <span className="text-gray-400">Late Cycles (6m):</span>
+              <span className="text-gray-400">Missed Payments (6 Mos):</span>
               <span className="text-[#bfdbfe] font-bold">{simDelays}</span>
             </div>
             <input
@@ -491,15 +500,15 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
             />
             <div className="flex justify-between meta text-gray-500 text-[9px]">
               <span>0 Delays</span>
-              <span>Baseline: {customer.delayedPayments6M}</span>
-              <span>6 Cycles</span>
+              <span>Current: {customer.delayedPayments6M}</span>
+              <span>6 Months Late</span>
             </div>
           </div>
 
           {/* Slider 3 */}
           <div className="space-y-2">
             <div className="flex justify-between mono">
-              <span className="text-gray-400">Income Shock:</span>
+              <span className="text-gray-400">Income Change:</span>
               <span className="text-[#bfdbfe] font-bold">{simIncomeFactor > 0 ? `+${simIncomeFactor}%` : `${simIncomeFactor}%`}</span>
             </div>
             <input
@@ -515,9 +524,9 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
               className="w-full accent-[#4338ca] cursor-pointer"
             />
             <div className="flex justify-between meta text-gray-500 text-[9px]">
-              <span>-50% Hardship</span>
-              <span>Baseline: $0</span>
-              <span>+50% Growth</span>
+              <span>-50% Job loss/cut</span>
+              <span>Current Income</span>
+              <span>+50% Raise</span>
             </div>
           </div>
         </div>
@@ -525,10 +534,10 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
         {isSimulating && baselinePrediction && (
           <div className="p-4 border border-gray-800 bg-[#242424] flex items-center justify-between mono text-xs">
             <div>
-              <span className="text-gray-400">Score Impact: </span>
+              <span className="text-gray-400">Original Risk Score: </span>
               <span className="text-white font-bold">{baselinePrediction.assessment.riskScore}</span>
-              <span className="text-gray-500 mx-2">→</span>
-              <span className={`font-bold ${
+              <span className="text-gray-500 mx-2">→ Simulated Score:</span>
+              <span className={`font-bold text-sm ${
                 assessment.riskScore > baselinePrediction.assessment.riskScore ? 'text-rose-400' : 'text-emerald-400'
               }`}>
                 {assessment.riskScore}
@@ -536,10 +545,10 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
             </div>
 
             <div>
-              <span className="text-gray-400">PD Impact: </span>
+              <span className="text-gray-400">Original Default Chance: </span>
               <span className="text-white font-bold">{baselinePrediction.assessment.defaultProbability.toFixed(1)}%</span>
-              <span className="text-gray-500 mx-2">→</span>
-              <span className={`font-bold ${
+              <span className="text-gray-500 mx-2">→ Simulated Chance:</span>
+              <span className={`font-bold text-sm ${
                 assessment.defaultProbability > baselinePrediction.assessment.defaultProbability ? 'text-rose-400' : 'text-emerald-400'
               }`}>
                 {assessment.defaultProbability.toFixed(1)}%

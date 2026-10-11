@@ -80,20 +80,23 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
       {/* Editorial Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div className="border-l-4 border-[#4338ca] pl-6 sm:pl-8">
-          <div className="meta mb-2">Automated Surveillance Engine — Rule Watchlist</div>
+          <div className="meta mb-2">Automated Risk Watchlist</div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1a1a1a] tracking-tight">
             Early-Warning Alerts
           </h1>
+          <p className="text-xs text-gray-500 font-sans mt-1">
+            Catch credit risk early: accounts flagged for high card usage, late payments, or paying less than the minimum.
+          </p>
         </div>
 
         {/* Counter Summary */}
         <div className="flex items-center gap-4 text-xs">
           <div className="border-b-2 border-[#be123c] pb-1">
-            <span className="meta text-[#be123c]">Critical</span>
+            <span className="meta text-[#be123c]">Urgent (Critical)</span>
             <div className="mono font-bold text-lg text-[#1a1a1a]">{criticalCount}</div>
           </div>
           <div className="border-b-2 border-[#b45309] pb-1">
-            <span className="meta text-[#b45309]">Reviewing</span>
+            <span className="meta text-[#b45309]">Under Review</span>
             <div className="mono font-bold text-lg text-[#1a1a1a]">{underReviewCount}</div>
           </div>
           <div className="border-b-2 border-emerald-700 pb-1">
@@ -109,7 +112,7 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
           <div className="border-b border-[#1a1a1a] pb-1 w-full">
             <input
               type="text"
-              placeholder="Filter by customer ID, name, or rule trigger..."
+              placeholder="Search by customer ID, name, or warning reason..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent outline-none w-full text-xs font-sans text-[#1a1a1a] placeholder-gray-400"
@@ -123,11 +126,11 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
             onChange={(e) => setSeverityFilter(e.target.value as any)}
             className="bg-white border border-[#e5e7eb] py-1.5 px-3 text-xs mono text-[#1a1a1a] outline-none"
           >
-            <option value="All">All Severities</option>
-            <option value="Critical">Critical</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
+            <option value="All">All Urgency Levels</option>
+            <option value="Critical">Critical (Urgent)</option>
+            <option value="High">High Risk</option>
+            <option value="Medium">Medium Risk</option>
+            <option value="Low">Low Risk</option>
           </select>
 
           <select
@@ -136,8 +139,8 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
             className="bg-white border border-[#e5e7eb] py-1.5 px-3 text-xs mono text-[#1a1a1a] outline-none"
           >
             <option value="All">All Statuses</option>
-            <option value="New">Status: New</option>
-            <option value="Under Review">Status: Reviewing</option>
+            <option value="New">Status: New Alert</option>
+            <option value="Under Review">Status: Being Reviewed</option>
             <option value="Resolved">Status: Resolved</option>
           </select>
 
@@ -203,7 +206,7 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
                     </div>
 
                     <div className="mono text-[11px] text-gray-500 flex items-center gap-3">
-                      <span>Trigger Metric: <strong className="text-[#1a1a1a]">{alert.metricValue}</strong></span>
+                      <span>Trigger Details: <strong className="text-[#1a1a1a]">{alert.metricValue}</strong></span>
                       <span>·</span>
                       <span>Detected: {alert.detectedDate}</span>
                       {alert.reviewedBy && (
@@ -218,7 +221,7 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
                   {/* Right Column: Recommended Action & Controls */}
                   <div className="lg:max-w-md w-full space-y-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#e5e7eb]">
                     <div className="p-3 bg-[#fdfcf9] border border-[#e5e7eb] text-xs leading-relaxed">
-                      <span className="meta text-[#4338ca] block mb-0.5">Underwriting Protocol:</span>
+                      <span className="meta text-[#4338ca] block mb-0.5">Recommended Action:</span>
                       <span className="text-[#1a1a1a]">{alert.suggestedAction}</span>
                     </div>
 
@@ -226,7 +229,7 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
                       {alert.status !== 'Under Review' && alert.status !== 'Resolved' && (
                         <button
                           onClick={() => handleStatusChange(alert.id, 'Under Review')}
-                          className="mono text-xs px-2.5 py-1 border border-[#e5e7eb] hover:border-[#1a1a1a] bg-white transition-colors"
+                          className="mono text-xs px-2.5 py-1 border border-[#e5e7eb] hover:border-[#1a1a1a] bg-white transition-colors cursor-pointer"
                         >
                           Review
                         </button>
@@ -235,7 +238,7 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
                       {alert.status !== 'Resolved' && (
                         <button
                           onClick={() => handleStatusChange(alert.id, 'Resolved')}
-                          className="mono text-xs px-2.5 py-1 border border-emerald-700 bg-emerald-50 text-emerald-800 transition-colors flex items-center gap-1"
+                          className="mono text-xs px-2.5 py-1 border border-emerald-700 bg-emerald-50 text-emerald-800 transition-colors flex items-center gap-1 cursor-pointer"
                         >
                           <Check className="w-3 h-3" />
                           <span>Resolve</span>
@@ -245,7 +248,7 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
                       {alert.status === 'Resolved' && (
                         <button
                           onClick={() => handleStatusChange(alert.id, 'Under Review')}
-                          className="mono text-xs px-2.5 py-1 border border-gray-300 bg-white transition-colors flex items-center gap-1"
+                          className="mono text-xs px-2.5 py-1 border border-gray-300 bg-white transition-colors flex items-center gap-1 cursor-pointer"
                         >
                           <RotateCcw className="w-3 h-3" />
                           <span>Reopen</span>
@@ -257,9 +260,9 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
                           onSelectCustomer(alert.customerId);
                           onNavigate('assessment');
                         }}
-                        className="mono text-xs px-3 py-1 bg-[#1a1a1a] hover:bg-[#4338ca] text-white transition-colors flex items-center gap-1"
+                        className="mono text-xs px-3 py-1 bg-[#1a1a1a] hover:bg-[#4338ca] text-white transition-colors flex items-center gap-1 cursor-pointer"
                       >
-                        <span>Profile</span>
+                        <span>View Profile</span>
                         <ArrowRight className="w-3 h-3" />
                       </button>
                     </div>

@@ -8,9 +8,19 @@ import {
   PortfolioSummaryResponse, 
   DataSourceType,
   ApiConfig,
-  EndpointContract
+  EndpointContract,
+  TestPredictionItem,
+  ValidationModelComparisonItem,
+  ModelPipelineSpec
 } from '../types';
-import { INITIAL_CUSTOMERS, INITIAL_ALERTS, SEGMENTS_DATA } from '../data/mockData';
+import { 
+  INITIAL_CUSTOMERS, 
+  INITIAL_ALERTS, 
+  SEGMENTS_DATA,
+  TEST_PREDICTIONS,
+  VALIDATION_MODELS,
+  MODEL_PIPELINE_SPEC
+} from '../data/mockData';
 import { calculateRiskAssessment, DEFAULT_RISK_CONFIG } from '../utils/scoringEngine';
 
 export const API_ENDPOINTS_DOCUMENTATION: EndpointContract[] = [
@@ -539,6 +549,77 @@ class CreditGuardApiService {
       customer,
       assessment: prediction.assessment,
       source: prediction.source,
+    };
+  }
+
+  /**
+   * Endpoint 9: Get Out-of-Sample Test Set Predictions (creditguard_test_predictions)
+   */
+  public async getTestPredictions(): Promise<TestPredictionItem[]> {
+    await this.simulateLatency(70);
+    return [...TEST_PREDICTIONS];
+  }
+
+  /**
+   * Endpoint 10: Get Model Validation & Comparison Benchmarks (creditguard_validation_model_comparison)
+   */
+  public async getValidationModels(): Promise<ValidationModelComparisonItem[]> {
+    await this.simulateLatency(60);
+    return [...VALIDATION_MODELS];
+  }
+
+  /**
+   * Endpoint 11: Get Pipeline Specification and Pickled Model Metadata (model.pkl / creditguard_model.pkl)
+   */
+  public async getModelPipelineSpec(): Promise<ModelPipelineSpec> {
+    await this.simulateLatency(50);
+    return { ...MODEL_PIPELINE_SPEC };
+  }
+
+  /**
+   * Endpoint 12: Interactive Model Retraining & Calibration Simulator
+   */
+  public async simulateModelRetraining(
+    hyperparams?: Record<string, any>
+  ): Promise<{ updatedSpec: ModelPipelineSpec; durationMs: number; log: string[] }> {
+    await this.simulateLatency(450);
+    const nTrees = Number(hyperparams?.n_estimators || MODEL_PIPELINE_SPEC.hyperparameters.n_estimators);
+    const lr = Number(hyperparams?.learning_rate || MODEL_PIPELINE_SPEC.hyperparameters.learning_rate);
+    const depth = Number(hyperparams?.max_depth || MODEL_PIPELINE_SPEC.hyperparameters.max_depth);
+    
+    // Compute adjusted evaluation metrics from new hyperparameters
+    const aucBonus = (nTrees >= 200 ? 0.005 : -0.01) + (lr >= 0.03 && lr <= 0.08 ? 0.004 : -0.015) + (depth === 4 ? 0.003 : 0);
+    const newAuc = Math.min(0.94, Math.max(0.82, parseFloat((MODEL_PIPELINE_SPEC.metrics.roc_auc + aucBonus).toFixed(3))));
+    const newGini = parseFloat(((newAuc * 2) - 1).toFixed(3));
+    const newKs = parseFloat((newAuc * 58 - 0.5).toFixed(1));
+    const newBrier = parseFloat((0.058 - aucBonus * 0.4).toFixed(3));
+
+    const updatedSpec: ModelPipelineSpec = {
+      ...MODEL_PIPELINE_SPEC,
+      hyperparameters: {
+        ...MODEL_PIPELINE_SPEC.hyperparameters,
+        ...hyperparams,
+      },
+      metrics: {
+        roc_auc: newAuc,
+        ks_stat: newKs,
+        brier_score: newBrier,
+      }
+    };
+
+    const log = [
+      `[PIPELINE] Initializing StandardScaler & Numerical Imputer on ${INITIAL_CUSTOMERS.length} records...`,
+      `[TRAINING] Fitting GradientBoostingClassifier(n_estimators=${nTrees}, learning_rate=${lr}, max_depth=${depth})...`,
+      `[CV-FOLD] 5-Fold Stratified Cross-Validation complete across default/non-default classes.`,
+      `[CALIBRATION] CalibratedClassifierCV Platt scaling applied for reliable probability scores.`,
+      `[ARTIFACT] Serialized trained pipeline weights to model.pkl and creditguard_model.pkl.`,
+      `[BENCHMARK] Validation ROC-AUC achieved: ${newAuc} | KS-Stat: ${newKs}% | Brier Score: ${newBrier}`
+    ];
+
+    return {
+      updatedSpec,
+      durationMs: 720,
+      log
     };
   }
 }

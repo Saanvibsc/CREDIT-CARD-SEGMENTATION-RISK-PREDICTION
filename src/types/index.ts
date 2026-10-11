@@ -138,3 +138,52 @@ export interface EndpointContract {
   requestBodySchema?: string;
   responseSchema: string;
 }
+
+export interface TestPredictionItem {
+  customerId: string;
+  fullName: string;
+  creditLimit: number;
+  outstandingBalance: number;
+  utilizationPct: number;
+  latePayments6M: number;
+  actualDefault: number;
+  predictedProbability: number;
+  predictedClass: number;
+  riskScore: number;
+  riskTier: RiskTier;
+  predictionOutcome: 'True Positive' | 'True Negative' | 'False Positive' | 'False Negative';
+  brierResidual: number;
+  confidence: number;
+}
+
+export interface ValidationModelComparisonItem {
+  model_name: string;
+  model_type: string;
+  roc_auc: number;
+  gini_coefficient: number;
+  ks_statistic_pct: number;
+  brier_score: number;
+  precision: number;
+  recall: number;
+  f1_score: number;
+  accuracy_pct: number;
+  fpr_at_90_recall: number;
+  inference_latency_ms: number;
+  status: string;
+  description: string;
+}
+
+export interface ModelPipelineSpec {
+  model_name: string;
+  version: string;
+  algorithm: string;
+  calibrated: boolean;
+  feature_names_in_: string[];
+  hyperparameters: Record<string, string | number | boolean>;
+  feature_importances_: Record<string, number>;
+  metrics: {
+    roc_auc: number;
+    ks_stat: number;
+    brier_score: number;
+  };
+}
