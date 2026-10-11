@@ -1,0 +1,7 @@
+node_modules/
+static/dist/
+.venv/
+.vscode/settings.json
+__pycache__/
+*.py[cod]
+.env

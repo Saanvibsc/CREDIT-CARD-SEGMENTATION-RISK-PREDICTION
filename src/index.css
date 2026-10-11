@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg: #fdfcf9;
+    --ink: #1a1a1a;
+    --accent: #4338ca;
+    --line: #e5e7eb;
+    --ink-soft: #6b7280;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, .font-editorial {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+
+  .font-mono, code, pre, .mono {
+    font-family: 'Space Mono', Menlo, Monaco, monospace;
+  }
+
+  .meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+  }
+}

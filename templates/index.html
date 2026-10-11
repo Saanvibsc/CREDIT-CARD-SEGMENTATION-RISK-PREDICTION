@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CreditGuard AI | Portfolio Risk</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark">CG</div>
+    <div>
+      <div class="brand-name">CreditGuard AI</div>
+      <div class="brand-subtitle">Credit portfolio intelligence</div>
+    </div>
+    <div class="top-tag">PROTOTYPE</div>
+  </header>
+
+  <main class="container">
+    {% if load_error %}
+      <section class="panel error-panel">
+        <h1>Setup needs attention</h1>
+        <p>The dashboard is unavailable. Check the setup details below.</p>
+        <pre>{{ load_error }}</pre>
+        <p>Build the React frontend with <code>npm run build</code> and make sure the model and dataset paths are valid.</p>
+      </section>
+    {% else %}
+      <section class="hero">
+        <div>
+          <p class="eyebrow">PORTFOLIO OVERVIEW</p>
+          <h1>Credit risk, made clearer.</h1>
+          <p class="hero-copy">Explore customer financial profiles and review model-estimated default risk.</p>
+        </div>
+        <div class="hero-note"><span class="pulse"></span> Model and dataset loaded</div>
+      </section>
+
+      <section class="metrics">
+        <article class="metric-card">
+          <div class="metric-label">Customers in dataset</div>
+          <div class="metric-value">{{ "{:,}".format(summary.total_customers) }}</div>
+          <div class="metric-foot">Records available for lookup</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Historical default rate</div>
+          <div class="metric-value">
+            {% if summary.historical_default_rate is not none %}{{ "%.2f"|format(summary.historical_default_rate) }}%{% else %}N/A{% endif %}
+          </div>
+          <div class="metric-foot">Observed target labels</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Predicted high-risk share</div>
+          <div class="metric-value">
+            {% if summary.predicted_high_risk_pct is not none %}{{ "%.2f"|format(summary.predicted_high_risk_pct) }}%{% else %}N/A{% endif %}
+          </div>
+          <div class="metric-foot">Model probability ≥ 60%</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Total credit exposure</div>
+          <div class="metric-value">{% if summary.credit_exposure is not none %}{{ "{:,.2f}".format(summary.credit_exposure) }}{% else %}N/A{% endif %}</div>
+          <div class="metric-foot">Sum of dataset exposure values</div>
+        </article>
+      </section>
+
+      {% if segments %}
+      <section class="panel segmentation-panel">
+        <div class="section-heading"><div><p class="eyebrow">CUSTOMER SEGMENTATION</p><h2>K-Means behavior groups</h2></div></div>
+        <p class="hint">Groups use available numeric payment and behavior indicators; cluster numbers are labels, not risk grades.</p>
+        <div class="segment-list">
+          {% for segment in segments %}<div class="segment-item"><strong>{{ segment.name }}</strong><span>{{ "{:,}".format(segment.count) }} customers</span></div>{% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      <section class="content-grid">
+        <section class="panel search-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">CUSTOMER LOOKUP</p>
+              <h2>Find a customer</h2>
+            </div>
+            <span class="step-number">01</span>
+          </div>
+          <form method="post" action="{{ url_for('index') }}" class="search-form">
+            <label for="customer_id">Customer ID</label>
+            <div class="search-row">
+              <input id="customer_id" name="customer_id" type="text" placeholder="e.g. CUST000001" value="{{ searched_id or '' }}" required>
+              <button type="submit">Search</button>
+            </div>
+            <p class="hint">Search uses the ID column in your existing CSV.</p>
+          </form>
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          <div class="sample-id">
+            <span>Example customer</span>
+            <strong>CUST000001</strong>
+          </div>
+        </section>
+
+        <section class="panel explanation-panel">
+          <p class="eyebrow">HOW IT WORKS</p>
+          <h2>From data to risk signal</h2>
+          <div class="flow-item"><span>1</span><div><strong>Customer profile</strong><p>Financial and payment fields from the dataset.</p></div></div>
+          <div class="flow-item"><span>2</span><div><strong>ML probability</strong><p>Saved Scikit-learn pipeline estimates default probability.</p></div></div>
+          <div class="flow-item"><span>3</span><div><strong>Report</strong><p>Download a customer-specific PDF for review.</p></div></div>
+        </section>
+      </section>
+
+      {% if customer %}
+      <section class="panel result-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CUSTOMER ASSESSMENT</p>
+            <h2>{{ customer[id_col] }}</h2>
+          </div>
+          <a class="button button-secondary" href="{{ url_for('report', customer_id=customer[id_col]) }}">Download PDF report</a>
+        </div>
+
+        <div class="risk-grid">
+          <div class="risk-card">
+            <div class="metric-label">Predicted default probability</div>
+            <div class="risk-number">{{ "%.2f"|format(customer.default_probability_pct) }}<span>%</span></div>
+            <p>Estimated likelihood from the saved model.</p>
+          </div>
+          <div class="risk-card">
+            <div class="metric-label">Prototype risk score</div>
+            <div class="risk-number">{{ "%.1f"|format(customer.risk_score) }}<span>/100</span></div>
+            <p>Probability × 100; not an official credit score.</p>
+          </div>
+          <div class="risk-card">
+            <div class="metric-label">Illustrative risk band</div>
+            <div class="risk-band">{{ customer.risk_category }}</div>
+            <p>Low &lt; 30%, Medium 30–59.99%, High ≥ 60%.</p>
+          </div>
+        </div>
+
+        <div class="section-heading profile-heading">
+          <div><p class="eyebrow">DATASET VALUES</p><h3>Financial profile</h3></div>
+        </div>
+        <div class="profile-table-wrap">
+          <table class="profile-table">
+            <tbody>
+            {% for key, value in customer.items() %}
+              {% if key not in ['default_probability_pct', 'risk_score', 'risk_category', 'predicted_class', 'risk_indicators'] %}
+              <tr>
+                <th>{{ key.replace('_', ' ').title() }}</th>
+                <td>{% if value is number %}{{ "%.3f"|format(value) }}{% else %}{{ value }}{% endif %}</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="warning-panel">
+          <h3>Early-warning indicators</h3>
+          {% if customer.risk_indicators %}
+            {% for title, action in customer.risk_indicators %}<div class="warning-item"><strong>{{ title }}</strong><p>Suggested review: {{ action }}</p></div>{% endfor %}
+          {% else %}<p>No configured early-warning indicators were triggered.</p>{% endif %}
+        </div>
+        <p class="disclaimer">Prototype only: predictions are estimates, not certainty or an automatic lending decision. Risk bands are illustrative and the score is not a CIBIL, FICO, or official credit-bureau score.</p>
+      </section>
+      {% endif %}
+      <footer>CreditGuard AI · Educational prototype · Not an official credit decision system</footer>
+    {% endif %}
+  </main>
+</body>
+</html>
