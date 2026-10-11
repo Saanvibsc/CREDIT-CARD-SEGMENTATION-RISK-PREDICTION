@@ -24,7 +24,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTierFilter, setSelectedTierFilter] = useState<'All' | RiskTier>('All');
   const [selectedCardFilter, setSelectedCardFilter] = useState<string>('All');
-  const [activeCustomerId, setActiveCustomerId] = useState<string>('CUST000001');
+  const [activeCustomerId, setActiveCustomerId] = useState<string>('CG-8041');
   
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [activePrediction, setActivePrediction] = useState<PredictionResponse | null>(null);
@@ -126,9 +126,9 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="meta">Quick Test Accounts:</span>
           {[
-            { id: 'CUST000001', label: 'Example' },
-            { id: 'CUST000002', label: 'Example' },
-            { id: 'CUST000003', label: 'Example' },
+            { id: 'CG-8041', label: 'Prime' },
+            { id: 'CG-5520', label: 'Medium' },
+            { id: 'CG-9204', label: 'Watchlist' },
           ].map(({ id, label }) => (
             <button
               key={id}

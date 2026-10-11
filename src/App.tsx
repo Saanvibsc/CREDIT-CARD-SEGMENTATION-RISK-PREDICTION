@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Customer, RiskConfig } from './types';
+import { INITIAL_CUSTOMERS } from './data/mockData';
 import { DEFAULT_RISK_CONFIG } from './utils/scoringEngine';
 import { api } from './services/api';
 import { TopNav } from './components/TopNav';
@@ -19,8 +20,8 @@ import { Settings } from './components/Settings';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavPage>('dashboard');
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('CUST000001');
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>(INITIAL_CUSTOMERS[0]?.id || 'CG-8041');
+  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
   const [config, setConfig] = useState<RiskConfig>(DEFAULT_RISK_CONFIG);
   const [activeAlertCount, setActiveAlertCount] = useState<number>(6);
   const [apiRefreshKey, setApiRefreshKey] = useState<number>(0);
@@ -38,14 +39,14 @@ export default function App() {
       })
       .catch((err) => {
         console.error('Error fetching customers in App root:', err);
-        setApiError(err instanceof Error ? err.message : 'Flask backend request failed.');
+        setApiError(err instanceof Error ? err.message : 'Backend request failed.');
       });
 
     api.getAlerts().then((alerts) => {
       setActiveAlertCount(alerts.filter(a => a.status !== 'Resolved').length);
     }).catch((err) => {
       console.error('Error fetching alerts in App root:', err);
-      setApiError(err instanceof Error ? err.message : 'Flask backend request failed.');
+      setApiError(err instanceof Error ? err.message : 'Backend request failed.');
     });
   }, [config, apiRefreshKey]);
 
@@ -53,29 +54,7 @@ export default function App() {
   const activeCustomer =
     customers.find((c) => c.id === selectedCustomerId) ||
     customers[0] ||
-    ({
-      id: 'CUST000001',
-      fullName: 'CUST000001',
-      email: 'Not recorded',
-      age: 42,
-      employmentStatus: '1.8 years recorded',
-      employerCategory: 'Home ownership: RENT',
-      annualIncome: 26046.74,
-      cardType: 'Not recorded',
-      creditLimit: 1004.9,
-      outstandingBalance: 40.87,
-      creditUtilization: 4.07,
-      repaymentHistory: [],
-      delayedPayments6M: 2,
-      paymentToMinRatio: 1.424,
-      cashAdvanceCount6M: 0,
-      monthlyAverageSpend: 94.76,
-      creditHistoryYears: 5.6,
-      inquiriesLast6M: null,
-      segment: 'Unassigned',
-      joinedDate: 'Not recorded',
-      lastAssessmentDate: 'Not recorded',
-    } as Customer);
+    INITIAL_CUSTOMERS[0];
 
   const handleBackendModeChange = () => {
     setApiRefreshKey((k) => k + 1);

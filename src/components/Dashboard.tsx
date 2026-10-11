@@ -61,7 +61,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     e.preventDefault();
     const query = searchIdInput.trim().toUpperCase();
     if (!query) {
-      setSearchError('Please enter a Customer ID (e.g., CUST000001)');
+      setSearchError('Please enter a Customer ID (e.g., CG-8041)');
       return;
     }
     const customer = await api.getCustomerById(query);
@@ -120,7 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="border-b-2 border-[#1a1a1a] py-1.5 flex items-center justify-between">
             <input
               type="text"
-              placeholder="Search customer ID (e.g. CUST000001)..."
+              placeholder="Search customer ID (e.g. CG-8041)..."
               value={searchIdInput}
               onChange={(e) => {
                 setSearchIdInput(e.target.value);
@@ -142,7 +142,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="flex items-center justify-between flex-wrap gap-2 text-xs py-2 border-y border-[#e5e7eb]">
         <div className="flex items-center gap-2">
           <span className="meta">Sample Registry Test Accounts:</span>
-          {['CUST000001', 'CUST000002', 'CUST000003', 'CUST000004'].map((id) => (
+          {['CG-8041', 'CG-3129', 'CG-5520', 'CG-9204'].map((id) => (
             <button
               key={id}
               onClick={() => {
