@@ -138,11 +138,11 @@ export const PythonEngine: React.FC<PythonEngineProps> = ({
       </header>
 
       {/* Interactive Terminal / Subprocess Runner */}
-      <section className="bg-[#14213d] text-white border border-[#1e293b] p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+      <section className="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e5e7eb] pb-4">
           <div className="flex items-center gap-2">
-            <Terminal className="w-5 h-5 text-emerald-400" />
-            <span className="mono text-xs font-bold text-white tracking-wide">
+            <Terminal className="w-5 h-5 text-emerald-700" />
+            <span className="mono text-xs font-bold text-[#1a1a1a] tracking-wide">
               Live Python Execution Console (subprocess)
             </span>
           </div>
@@ -152,25 +152,25 @@ export const PythonEngine: React.FC<PythonEngineProps> = ({
             <button
               onClick={runPythonPortfolio}
               disabled={isRunning}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-xs mono text-white rounded-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-xs mono text-slate-800 rounded-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <Play className="w-3 h-3 text-emerald-400" />
+              <Play className="w-3 h-3 text-emerald-700" />
               <span>--action portfolio</span>
             </button>
 
             <button
               onClick={runPythonPredict}
               disabled={isRunning}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-xs mono text-white rounded-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-xs mono text-slate-800 rounded-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <Play className="w-3 h-3 text-indigo-400" />
+              <Play className="w-3 h-3 text-indigo-600" />
               <span>--action predict</span>
             </button>
 
             <button
               onClick={runPythonTrain}
               disabled={isRunning}
-              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs mono text-white rounded-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 font-semibold"
+              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-xs mono text-white rounded-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 font-semibold"
             >
               <RotateCcw className={`w-3 h-3 ${isRunning ? 'animate-spin' : ''}`} />
               <span>train_model.py</span>
@@ -179,14 +179,14 @@ export const PythonEngine: React.FC<PythonEngineProps> = ({
         </div>
 
         {/* Command line indicator */}
-        <div className="flex items-center gap-2 text-xs mono text-emerald-400 bg-black/40 px-3 py-1.5 rounded-xs">
+        <div className="flex items-center gap-2 text-xs mono text-emerald-800 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xs">
           <span className="text-gray-500">$</span>
           <span className="truncate">{activeCommand}</span>
-          {isRunning && <span className="text-amber-400 animate-pulse ml-auto">RUNNING PYTHON PROCESS...</span>}
+          {isRunning && <span className="text-amber-700 animate-pulse ml-auto">RUNNING PYTHON PROCESS...</span>}
         </div>
 
         {/* Console Stdout Output */}
-        <pre className="p-4 bg-black/60 rounded-xs mono text-xs text-gray-200 overflow-x-auto max-h-72 leading-relaxed border border-white/5 whitespace-pre-wrap">
+        <pre className="p-4 bg-slate-50 rounded-xl mono text-xs text-slate-700 overflow-x-auto max-h-72 leading-relaxed border border-slate-200 whitespace-pre-wrap">
           {commandOutput}
         </pre>
       </section>
