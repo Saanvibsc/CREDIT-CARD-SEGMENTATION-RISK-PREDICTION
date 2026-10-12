@@ -6,13 +6,14 @@ import fs from 'fs';
 
 const app = express();
 const PORT = 3000;
+const PYTHON_EXECUTABLE = process.platform === 'win32' ? 'python' : 'python3';
 
 app.use(express.json());
 
 // Helper to execute Python engine commands via child_process
 function runPythonCommand(args: string[]): Promise<any> {
   return new Promise((resolve, reject) => {
-    const pythonProc = spawn('python3', ['creditguard_engine.py', ...args], {
+    const pythonProc = spawn(PYTHON_EXECUTABLE, ['creditguard_engine.py', ...args], {
       cwd: process.cwd(),
       env: { ...process.env, PYTHONUNBUFFERED: '1' }
     });
@@ -184,7 +185,7 @@ app.get('/api/v1/alerts', async (req, res) => {
 
 // 7. Execute custom Python training / script runner
 app.post('/api/v1/python/train', async (req, res) => {
-  const pythonProc = spawn('python3', ['train_model.py'], {
+  const pythonProc = spawn(PYTHON_EXECUTABLE, ['train_model.py'], {
     cwd: process.cwd(),
     env: { ...process.env, PYTHONUNBUFFERED: '1' }
   });

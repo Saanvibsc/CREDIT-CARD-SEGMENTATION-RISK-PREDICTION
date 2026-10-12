@@ -17,6 +17,7 @@ import { EarlyWarningAlerts } from './components/EarlyWarningAlerts';
 import { CustomerSegmentation } from './components/CustomerSegmentation';
 import { RiskReports } from './components/RiskReports';
 import { PythonEngine } from './components/PythonEngine';
+import { UploadReport } from './components/UploadReport';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavPage>('dashboard');
@@ -124,6 +125,8 @@ export default function App() {
             onNavigate={(page) => setCurrentPage(page)}
           />
         )}
+
+        {currentPage === 'upload-report' && <UploadReport config={config} />}
 
         {currentPage === 'python-engine' && (
           <PythonEngine

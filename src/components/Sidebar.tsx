@@ -6,6 +6,7 @@ import {
   BellRing, 
   Users, 
   FileText, 
+  Upload,
   Shield, 
   ChevronRight, 
   X,
@@ -24,13 +25,14 @@ export interface SidebarProps {
 }
 
 const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'search', label: 'Search Customers', icon: Search },
   { id: 'assessment', label: 'Risk Analysis', icon: ShieldAlert },
   { id: 'alerts', label: 'Early-Warning Alerts', icon: BellRing },
   { id: 'segmentation', label: 'Customer Groups', icon: Users },
   { id: 'reports', label: 'Risk Reports', icon: FileText },
+  { id: 'upload-report', label: 'Upload Report', icon: Upload },
   { id: 'python-engine', label: 'Python Engine', icon: Terminal },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
