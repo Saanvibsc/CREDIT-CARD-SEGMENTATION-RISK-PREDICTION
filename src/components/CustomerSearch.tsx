@@ -7,7 +7,7 @@ import {
   RefreshCw,
   Download
 } from 'lucide-react';
-import { Customer, RiskConfig, RiskTier, PredictionResponse } from '../types';
+import { Customer, RiskConfig, RiskTier, PredictionResponse, RepaymentRecord } from '../types';
 import { api } from '../services/api';
 import { NavPage } from './Sidebar';
 
@@ -43,7 +43,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
         config
       );
       setCustomers(data);
-      if (data.length > 0 && !data.some(c => c.id === activeCustomerId)) {
+      if (data.length > 0 && !data.some((c: Customer) => c.id === activeCustomerId)) {
         setActiveCustomerId(data[0].id);
       }
     } catch (err) {
@@ -346,7 +346,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
                 <span className="mono text-[10px] text-gray-400">{activeCustomer.delayedPayments6M} delays total</span>
               </div>
               <div className="grid grid-cols-6 gap-1 text-center">
-                {activeCustomer.repaymentHistory.map((rep, idx) => (
+                {activeCustomer.repaymentHistory.map((rep: RepaymentRecord, idx: number) => (
                   <div
                     key={idx}
                     className={`py-1.5 px-0.5 border mono text-[9px] ${

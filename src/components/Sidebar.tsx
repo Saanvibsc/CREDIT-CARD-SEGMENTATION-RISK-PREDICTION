@@ -6,12 +6,23 @@ import {
   BellRing, 
   Users, 
   FileText, 
-  Shield,
-  ChevronRight,
-  X
+  Shield, 
+  ChevronRight, 
+  X 
 } from 'lucide-react';
+import { NavPage } from '../types';
 
-const NAV_ITEMS = [
+export type { NavPage };
+
+export interface SidebarProps {
+  currentPage: NavPage;
+  onNavigate: (page: NavPage) => void;
+  isOpenMobile?: boolean;
+  onToggleMobile?: () => void;
+  criticalAlertCount?: number;
+}
+
+const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'search', label: 'Search Customers', icon: Search },
   { id: 'assessment', label: 'Risk Analysis', icon: ShieldAlert },
@@ -20,12 +31,12 @@ const NAV_ITEMS = [
   { id: 'reports', label: 'Risk Reports', icon: FileText },
 ];
 
-export const Sidebar = ({
+export const Sidebar: React.FC<SidebarProps> = ({
   currentPage,
   onNavigate,
-  isOpenMobile,
+  isOpenMobile = false,
   onToggleMobile,
-  criticalAlertCount,
+  criticalAlertCount = 0,
 }) => {
   return (
     <>
@@ -59,13 +70,15 @@ export const Sidebar = ({
             </div>
           </div>
 
-          <button 
-            onClick={onToggleMobile}
-            className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-md hover:bg-slate-800/60 transition-colors"
-            aria-label="Close navigation sidebar"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {onToggleMobile && (
+            <button 
+              onClick={onToggleMobile}
+              className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-md hover:bg-slate-800/60 transition-colors"
+              aria-label="Close navigation sidebar"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Navigation list */}
@@ -82,9 +95,9 @@ export const Sidebar = ({
                 key={item.id}
                 onClick={() => {
                   onNavigate(item.id);
-                  if (isOpenMobile) onToggleMobile();
+                  if (isOpenMobile && onToggleMobile) onToggleMobile();
                 }}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                   isActive
                     ? 'bg-[#159A8C] text-white shadow-sm shadow-[#159A8C]/30 font-semibold'
                     : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'

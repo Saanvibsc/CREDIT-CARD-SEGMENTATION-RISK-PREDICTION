@@ -4,7 +4,7 @@ import {
   CheckCircle2, 
   ArrowRight
 } from 'lucide-react';
-import { Customer, RiskConfig, ComputedRiskAssessment, DataSourceType } from '../types';
+import { Customer, RiskConfig, ComputedRiskAssessment, DataSourceType, FactorContribution } from '../types';
 import { api } from '../services/api';
 import { NavPage } from './Sidebar';
 
@@ -245,7 +245,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
               <p className="text-gray-500">
                 Calculated directly from credit utilization and recent repayment records.
               </p>
-            ) : assessment.factorContributions.map((item, idx) => (
+            ) : assessment.factorContributions.map((item: FactorContribution, idx: number) => (
               <div key={idx} className="p-2.5 border border-[#e5e7eb] flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-[#1a1a1a]">{item.factor}</span>
@@ -270,7 +270,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
           </div>
 
           <ol className="space-y-1.5 list-decimal list-inside text-xs text-[#1a1a1a] font-medium leading-relaxed">
-            {assessment.recommendedActions.map((action, idx) => (
+            {assessment.recommendedActions.map((action: string, idx: number) => (
               <li key={idx} className="py-1 border-b border-gray-100">
                 {action}
               </li>

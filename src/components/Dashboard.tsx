@@ -44,7 +44,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       ]);
       setData(summaryRes);
       setRecentCustomers(custRes.slice(0, 6));
-      setActiveAlerts(alertsRes.filter((a) => a.status !== 'Resolved').slice(0, 4));
+      setActiveAlerts(alertsRes.filter((a: EarlyWarningAlert) => a.status !== 'Resolved').slice(0, 4));
     } catch (err) {
       console.error('Failed to load dashboard data via API service:', err);
     } finally {

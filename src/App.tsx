@@ -29,21 +29,21 @@ export default function App() {
   // Load customer index for customer switcher and report menus
   useEffect(() => {
     api.searchCustomers(undefined, undefined, undefined, config)
-      .then((data) => {
+      .then((data: Customer[]) => {
         setApiError('');
         setCustomers(data);
-        if (data.length > 0 && !data.some(c => c.id === selectedCustomerId)) {
+        if (data.length > 0 && !data.some((c: Customer) => c.id === selectedCustomerId)) {
           setSelectedCustomerId(data[0].id);
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error('Error fetching customers in App root:', err);
         setApiError(err instanceof Error ? err.message : 'Backend request failed.');
       });
 
-    api.getAlerts().then((alerts) => {
-      setActiveAlertCount(alerts.filter(a => a.status !== 'Resolved').length);
-    }).catch((err) => {
+    api.getAlerts().then((alerts: any[]) => {
+      setActiveAlertCount(alerts.filter((a: any) => a.status !== 'Resolved').length);
+    }).catch((err: unknown) => {
       console.error('Error fetching alerts in App root:', err);
       setApiError(err instanceof Error ? err.message : 'Backend request failed.');
     });
@@ -51,7 +51,7 @@ export default function App() {
 
   // Active customer object
   const activeCustomer =
-    customers.find((c) => c.id === selectedCustomerId) ||
+    customers.find((c: Customer) => c.id === selectedCustomerId) ||
     customers[0] ||
     INITIAL_CUSTOMERS[0];
 
@@ -60,8 +60,8 @@ export default function App() {
       {/* Variation 3 Editorial Top Navigation */}
       <TopNav
         currentPage={currentPage}
-        onNavigate={(page) => setCurrentPage(page)}
-        onSelectCustomer={(id) => setSelectedCustomerId(id)}
+        onNavigate={(page: NavPage) => setCurrentPage(page)}
+        onSelectCustomer={(id: string) => setSelectedCustomerId(id)}
         activeAlertCount={activeAlertCount}
       />
 

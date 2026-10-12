@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { api } from '../services/api';
+import { NavPage, Customer } from '../types';
 
-const NAV_ITEMS = [
+interface TopNavProps {
+  currentPage: NavPage;
+  onNavigate: (page: NavPage) => void;
+  onSelectCustomer: (id: string) => void;
+  activeAlertCount: number;
+}
+
+const NAV_ITEMS: { id: NavPage; label: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'search', label: 'Search Customers' },
   { id: 'assessment', label: 'Risk Analysis' },
@@ -11,7 +19,7 @@ const NAV_ITEMS = [
   { id: 'reports', label: 'Reports' },
 ];
 
-export const TopNav = ({
+export const TopNav: React.FC<TopNavProps> = ({
   currentPage,
   onNavigate,
   onSelectCustomer,
@@ -19,7 +27,7 @@ export const TopNav = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuickResults, setShowQuickResults] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<Customer[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -29,7 +37,7 @@ export const TopNav = ({
     }
 
     const timer = setTimeout(() => {
-      api.searchCustomers(searchQuery).then((results) => {
+      api.searchCustomers(searchQuery).then((results: Customer[]) => {
         setSearchResults(results.slice(0, 5));
       });
     }, 120);
@@ -37,7 +45,7 @@ export const TopNav = ({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleSelect = (id) => {
+  const handleSelect = (id: string) => {
     onSelectCustomer(id);
     onNavigate('assessment');
     setSearchQuery('');

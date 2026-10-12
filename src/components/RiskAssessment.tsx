@@ -9,7 +9,7 @@ import {
   Server,
   Cpu
 } from 'lucide-react';
-import { Customer, RiskConfig, PredictionResponse } from '../types';
+import { Customer, RiskConfig, PredictionResponse, RepaymentRecord, FactorContribution } from '../types';
 import { api } from '../services/api';
 import { RiskScoreGauge } from './charts/RiskCharts';
 import { NavPage } from './Sidebar';
@@ -331,7 +331,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
           </div>
 
           <div className="space-y-2">
-            {customer.repaymentHistory.map((rec, i) => (
+            {customer.repaymentHistory.map((rec: RepaymentRecord, i: number) => (
               <div key={i} className="flex items-center justify-between p-2.5 border border-[#e5e7eb] text-xs">
                 <div>
                   <span className="font-semibold text-[#1a1a1a]">{rec.month}</span>
@@ -367,7 +367,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
               <p className="text-xs text-gray-500">
                 Calculated directly from credit utilization and payment records.
               </p>
-            ) : assessment.factorContributions.map((item, idx) => {
+            ) : assessment.factorContributions.map((item: FactorContribution, idx: number) => {
               const isPositive = item.impact === 'positive';
               const isNegative = item.impact === 'negative';
               return (
@@ -404,7 +404,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {assessment.recommendedActions.map((action, idx) => (
+          {assessment.recommendedActions.map((action: string, idx: number) => (
             <div key={idx} className="p-3 border border-[#e5e7eb] text-xs flex items-start gap-3">
               <span className="mono font-bold text-[#4338ca] shrink-0">0{idx + 1}.</span>
               <span className="text-[#1a1a1a] font-medium leading-relaxed">{action}</span>

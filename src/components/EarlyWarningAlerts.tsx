@@ -32,7 +32,7 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
       const data = await api.getAlerts(severityFilter, statusFilter);
       setAlerts(data);
       if (onAlertsCountChange) {
-        const crit = data.filter((a) => a.severity === 'Critical' && a.status !== 'Resolved').length;
+        const crit = data.filter((a: EarlyWarningAlert) => a.severity === 'Critical' && a.status !== 'Resolved').length;
         onAlertsCountChange(crit);
       }
     } catch (err) {
@@ -66,7 +66,7 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
     const q = searchQuery.toLowerCase();
     return (
       alert.customerId.toLowerCase().includes(q) ||
-      alert.customerName.toLowerCase().includes(q) ||
+      (alert.customerName ? alert.customerName.toLowerCase().includes(q) : false) ||
       alert.triggerReason.toLowerCase().includes(q)
     );
   });
@@ -183,9 +183,11 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
                       >
                         {alert.customerId}
                       </button>
-                      <span className="font-sans font-semibold text-xs text-[#1a1a1a]">
-                        {alert.customerName}
-                      </span>
+                      {alert.customerName && (
+                        <span className="font-sans font-semibold text-xs text-[#1a1a1a]">
+                          {alert.customerName}
+                        </span>
+                      )}
                       <span className={`mono text-[10px] px-1.5 py-0.5 border ${
                         alert.severity === 'Critical'
                           ? 'border-[#be123c] text-[#be123c] bg-rose-50'
@@ -206,9 +208,13 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
                     </div>
 
                     <div className="mono text-[11px] text-gray-500 flex items-center gap-3">
-                      <span>Trigger Details: <strong className="text-[#1a1a1a]">{alert.metricValue}</strong></span>
-                      <span>·</span>
-                      <span>Detected: {alert.detectedDate}</span>
+                      {alert.metricValue && (
+                        <>
+                          <span>Trigger Details: <strong className="text-[#1a1a1a]">{alert.metricValue}</strong></span>
+                          <span>·</span>
+                        </>
+                      )}
+                      <span>Detected: {alert.detectedDate || alert.triggerDate || 'Recently'}</span>
                       {alert.reviewedBy && (
                         <>
                           <span>·</span>
@@ -220,10 +226,12 @@ export const EarlyWarningAlerts: React.FC<EarlyWarningAlertsProps> = ({
 
                   {/* Right Column: Recommended Action & Controls */}
                   <div className="lg:max-w-md w-full space-y-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#e5e7eb]">
-                    <div className="p-3 bg-[#fdfcf9] border border-[#e5e7eb] text-xs leading-relaxed">
-                      <span className="meta text-[#4338ca] block mb-0.5">Recommended Action:</span>
-                      <span className="text-[#1a1a1a]">{alert.suggestedAction}</span>
-                    </div>
+                    {alert.suggestedAction && (
+                      <div className="p-3 bg-[#fdfcf9] border border-[#e5e7eb] text-xs leading-relaxed">
+                        <span className="meta text-[#4338ca] block mb-0.5">Recommended Action:</span>
+                        <span className="text-[#1a1a1a]">{alert.suggestedAction}</span>
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2 justify-end">
                       {alert.status !== 'Under Review' && alert.status !== 'Resolved' && (
