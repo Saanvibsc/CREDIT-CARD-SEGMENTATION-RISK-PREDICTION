@@ -12,7 +12,7 @@ import pickle
 import math
 
 DATA_PATH = os.environ.get("DATA_PATH", "data/combined_credit_risk_realistic_with_ids.csv" if os.path.exists("data/combined_credit_risk_realistic_with_ids.csv") else "combined_credit_risk_realistic_with_ids.csv")
-MODEL_OUT = os.environ.get("MODEL_OUT", "model.pkl")
+MODEL_OUT = os.environ.get("MODEL_OUT", "data/model.pkl" if os.path.exists("data") else "model.pkl")
 
 def load_dataset(filepath):
     if not os.path.exists(filepath):
@@ -90,10 +90,8 @@ def train_and_evaluate():
     
     with open(MODEL_OUT, "wb") as f:
         pickle.dump(model_artifact, f)
-    with open("model.pkl", "wb") as f:
-        pickle.dump(model_artifact, f)
         
-    print(f"\n--> Model successfully compiled and saved to {MODEL_OUT} and model.pkl")
+    print(f"\n--> Model successfully compiled and saved to {MODEL_OUT}")
     print(f"    ROC-AUC: {model_artifact['metrics']['roc_auc']:.3f}")
     print(f"    Gini:    {model_artifact['metrics']['gini_coefficient']:.3f}")
     print(f"    KS-Stat: {model_artifact['metrics']['ks_statistic_pct']:.1f}%")
