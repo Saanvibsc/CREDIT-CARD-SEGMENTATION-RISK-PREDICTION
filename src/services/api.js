@@ -129,7 +129,7 @@ export const API_ENDPOINTS_DOCUMENTATION = [
 class CreditGuardApiService {
   constructor() {
     this.config = {
-      mode: 'mock',
+      mode: 'live',
       baseUrl: '',
       timeoutMs: 3000,
       connectionStatus: 'connected',

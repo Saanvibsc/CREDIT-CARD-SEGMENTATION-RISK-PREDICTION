@@ -16,6 +16,7 @@ import { RiskAssessment } from './components/RiskAssessment';
 import { EarlyWarningAlerts } from './components/EarlyWarningAlerts';
 import { CustomerSegmentation } from './components/CustomerSegmentation';
 import { RiskReports } from './components/RiskReports';
+import { PythonEngine } from './components/PythonEngine';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavPage>('dashboard');
@@ -121,6 +122,13 @@ export default function App() {
             config={config}
             onSelectCustomer={(id) => setSelectedCustomerId(id)}
             onNavigate={(page) => setCurrentPage(page)}
+          />
+        )}
+
+        {currentPage === 'python-engine' && (
+          <PythonEngine
+            onNavigate={(page) => setCurrentPage(page)}
+            selectedCustomerId={selectedCustomerId}
           />
         )}
       </main>

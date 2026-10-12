@@ -8,7 +8,8 @@ import {
   FileText, 
   Shield, 
   ChevronRight, 
-  X 
+  X,
+  Terminal
 } from 'lucide-react';
 import { NavPage } from '../types';
 
@@ -29,6 +30,7 @@ const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ class
   { id: 'alerts', label: 'Early-Warning Alerts', icon: BellRing },
   { id: 'segmentation', label: 'Customer Groups', icon: Users },
   { id: 'reports', label: 'Risk Reports', icon: FileText },
+  { id: 'python-engine', label: 'Python Engine', icon: Terminal },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({

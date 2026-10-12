@@ -17,6 +17,7 @@ const NAV_ITEMS: { id: NavPage; label: string }[] = [
   { id: 'alerts', label: 'Alerts' },
   { id: 'segmentation', label: 'Customer Groups' },
   { id: 'reports', label: 'Reports' },
+  { id: 'python-engine', label: 'Python Engine' },
 ];
 
 export const TopNav: React.FC<TopNavProps> = ({

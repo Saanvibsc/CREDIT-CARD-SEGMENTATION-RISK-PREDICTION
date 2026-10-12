@@ -9,7 +9,8 @@ export type NavPage =
   | 'assessment'
   | 'alerts'
   | 'segmentation'
-  | 'reports';
+  | 'reports'
+  | 'python-engine';
 
 export type RiskTier = 'Low' | 'Medium' | 'High';
 
