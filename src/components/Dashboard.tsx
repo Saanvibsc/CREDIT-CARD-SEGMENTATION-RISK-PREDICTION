@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  TrendingUp, 
-  AlertTriangle, 
-  DollarSign, 
-  Search, 
-  ChevronRight,
-  Clock,
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Activity,
   ArrowRight,
+  BarChart3,
+  CircleDollarSign,
+  CreditCard,
+  Filter,
   RefreshCw,
-  Server
+  Search,
+  ShieldCheck,
+  Users,
+  X,
 } from 'lucide-react';
-import { Customer, EarlyWarningAlert, RiskConfig, PortfolioSummaryResponse } from '../types';
+import { Customer, EarlyWarningAlert, RiskConfig, RiskTier } from '../types';
 import { api } from '../services/api';
-import { RiskDistributionChart, PortfolioExposureChart } from './charts/RiskCharts';
 import { NavPage } from './Sidebar';
 
 interface DashboardProps {
@@ -22,45 +22,189 @@ interface DashboardProps {
   onSelectCustomer: (customerId: string) => void;
 }
 
+type TierFilter = 'All' | RiskTier;
+type UtilizationFilter = 'All' | '0-30' | '31-60' | '61-80' | '80+';
+
+const TIER_ORDER: RiskTier[] = ['Low', 'Medium', 'High'];
+const TIER_COLORS: Record<RiskTier, string> = {
+  Low: '#0f9f83',
+  Medium: '#f2a93b',
+  High: '#ed6a75',
+};
+
+const currency = (amount: number) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(amount);
+
+const matchesUtilization = (customer: Customer, range: UtilizationFilter) => {
+  if (range === 'All') return true;
+  if (range === '0-30') return customer.creditUtilization <= 30;
+  if (range === '31-60') return customer.creditUtilization > 30 && customer.creditUtilization <= 60;
+  if (range === '61-80') return customer.creditUtilization > 60 && customer.creditUtilization <= 80;
+  return customer.creditUtilization > 80;
+};
+
+const selectClassName =
+  'min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100';
+
 export const Dashboard: React.FC<DashboardProps> = ({
   config,
   onNavigate,
   onSelectCustomer,
 }) => {
-  const [data, setData] = useState<PortfolioSummaryResponse | null>(null);
-  const [recentCustomers, setRecentCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [tierById, setTierById] = useState<Record<string, RiskTier>>({});
   const [activeAlerts, setActiveAlerts] = useState<EarlyWarningAlert[]>([]);
+  const [source, setSource] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [segmentFilter, setSegmentFilter] = useState('All');
+  const [tierFilter, setTierFilter] = useState<TierFilter>('All');
+  const [cardFilter, setCardFilter] = useState('All');
+  const [utilizationFilter, setUtilizationFilter] = useState<UtilizationFilter>('All');
   const [searchIdInput, setSearchIdInput] = useState('');
   const [searchError, setSearchError] = useState('');
 
   const loadDashboardData = async () => {
     setLoading(true);
+    setLoadError('');
     try {
-      const [summaryRes, custRes, alertsRes] = await Promise.all([
+      const [summary, ...tierResults] = await Promise.all([
         api.getPortfolioSummary(config),
-        api.searchCustomers(undefined, undefined, undefined, config),
-        api.getAlerts(undefined, undefined),
+        ...TIER_ORDER.map((tier) => api.searchCustomers(undefined, tier, undefined, config)),
       ]);
-      setData(summaryRes);
-      setRecentCustomers(custRes.slice(0, 6));
-      setActiveAlerts(alertsRes.filter((a: EarlyWarningAlert) => a.status !== 'Resolved').slice(0, 4));
+      const assignments: Record<string, RiskTier> = {};
+      tierResults.forEach((records: Customer[], index) => {
+        records.forEach((customer) => {
+          assignments[customer.id] = TIER_ORDER[index];
+        });
+      });
+      const records = Array.from(
+        new Map(tierResults.flat().map((customer: Customer) => [customer.id, customer])).values(),
+      ) as Customer[];
+
+      setCustomers(records);
+      setTierById(assignments);
+      setSource(summary.source || 'demo-proxy');
+
+      const alerts = await api.getAlerts();
+      setActiveAlerts(
+        alerts.filter((alert: EarlyWarningAlert) => alert.status !== 'Resolved').slice(0, 4),
+      );
     } catch (err) {
-      console.error('Failed to load dashboard data via API service:', err);
+      console.error('Failed to load dashboard data:', err);
+      setLoadError(err instanceof Error ? err.message : 'Unable to load portfolio records.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadDashboardData();
+    void loadDashboardData();
   }, [config]);
 
-  const handleQuickSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const segments = useMemo(
+    () => Array.from(new Set(customers.map((customer) => customer.segment).filter(Boolean))).sort(),
+    [customers],
+  );
+  const cardTypes = useMemo(
+    () => Array.from(new Set(customers.map((customer) => customer.cardType).filter(Boolean))).sort(),
+    [customers],
+  );
+
+  const filteredCustomers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return customers.filter((customer) => {
+      const tier = tierById[customer.id];
+      const matchesSegment = segmentFilter === 'All' || customer.segment === segmentFilter;
+      const matchesTier = tierFilter === 'All' || tier === tierFilter;
+      const matchesCard = cardFilter === 'All' || customer.cardType === cardFilter;
+      const matchesSearch =
+        !query ||
+        customer.id.toLowerCase().includes(query) ||
+        customer.fullName.toLowerCase().includes(query);
+      return (
+        matchesSegment &&
+        matchesTier &&
+        matchesCard &&
+        matchesSearch &&
+        matchesUtilization(customer, utilizationFilter)
+      );
+    });
+  }, [customers, tierById, segmentFilter, tierFilter, cardFilter, searchQuery, utilizationFilter]);
+
+  const totals = useMemo(() => {
+    const creditLimit = filteredCustomers.reduce((sum, customer) => sum + customer.creditLimit, 0);
+    const balance = filteredCustomers.reduce(
+      (sum, customer) => sum + customer.outstandingBalance,
+      0,
+    );
+    const highRiskCount = filteredCustomers.filter(
+      (customer) => tierById[customer.id] === 'High',
+    ).length;
+    return {
+      accountCount: filteredCustomers.length,
+      creditLimit,
+      balance,
+      utilization: creditLimit > 0 ? (balance / creditLimit) * 100 : 0,
+      highRiskShare: filteredCustomers.length ? (highRiskCount / filteredCustomers.length) * 100 : 0,
+    };
+  }, [filteredCustomers, tierById]);
+
+  const segmentStats = useMemo(() => {
+    const groups = new Map<
+      string,
+      { name: string; count: number; balance: number; limit: number; tiers: Record<RiskTier, number> }
+    >();
+    filteredCustomers.forEach((customer) => {
+      const name = customer.segment || 'Unassigned';
+      const current = groups.get(name) || {
+        name,
+        count: 0,
+        balance: 0,
+        limit: 0,
+        tiers: { Low: 0, Medium: 0, High: 0 },
+      };
+      current.count += 1;
+      current.balance += customer.outstandingBalance;
+      current.limit += customer.creditLimit;
+      const tier = tierById[customer.id];
+      if (tier) current.tiers[tier] += 1;
+      groups.set(name, current);
+    });
+    return Array.from(groups.values()).sort((a, b) => b.count - a.count);
+  }, [filteredCustomers, tierById]);
+
+  const sortedCustomers = useMemo(
+    () =>
+      [...filteredCustomers].sort((a, b) => {
+        const riskRank = (tier: RiskTier | undefined) =>
+          tier === 'High' ? 0 : tier === 'Medium' ? 1 : 2;
+        return (
+          riskRank(tierById[a.id]) - riskRank(tierById[b.id]) ||
+          b.outstandingBalance - a.outstandingBalance
+        );
+      }),
+    [filteredCustomers, tierById],
+  );
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSegmentFilter('All');
+    setTierFilter('All');
+    setCardFilter('All');
+    setUtilizationFilter('All');
+  };
+
+  const handleQuickSearch = async (event: React.FormEvent) => {
+    event.preventDefault();
     const query = searchIdInput.trim().toUpperCase();
     if (!query) {
-      setSearchError('Please enter a Customer ID (e.g., CUST000001)');
+      setSearchError('Enter a customer ID to search the portfolio.');
       return;
     }
     const customer = await api.getCustomerById(query);
@@ -69,292 +213,410 @@ export const Dashboard: React.FC<DashboardProps> = ({
       onSelectCustomer(customer.id);
       onNavigate('assessment');
     } else {
-      setSearchError(`Customer ID "${query}" not found in portfolio registry.`);
+      setSearchError(`Customer ID "${query}" was not found.`);
     }
   };
 
-  if (loading && !data) {
+  if (loading && customers.length === 0) {
     return (
-      <div className="space-y-12 max-w-[1400px] mx-auto py-8 animate-pulse">
-        <div className="h-16 bg-gray-100 border-l-4 border-[#4338ca] pl-6 w-1/3" />
-        <div className="grid grid-cols-4 gap-8 py-6 border-b border-[#e5e7eb]">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 bg-gray-100" />
+      <div className="mx-auto max-w-[1500px] space-y-6 animate-pulse">
+        <div className="h-32 rounded-3xl bg-slate-100" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="h-32 rounded-2xl bg-slate-100" />
           ))}
         </div>
-        <div className="grid grid-cols-12 gap-12">
-          <div className="col-span-4 h-80 bg-gray-100" />
-          <div className="col-span-8 h-80 bg-gray-100" />
-        </div>
+        <div className="h-96 rounded-3xl bg-slate-100" />
       </div>
     );
   }
 
-  if (!data) {
+  if (loadError && customers.length === 0) {
     return (
-      <div role="alert" className="max-w-[1400px] mx-auto border border-rose-300 bg-rose-50 p-5 text-sm text-rose-800">
-        Could not load portfolio data. Please check connection settings or switch to the demo proxy.
+      <div role="alert" className="mx-auto max-w-[1500px] rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-800">
+        <p className="font-semibold">Portfolio data could not be loaded.</p>
+        <p className="mt-1">{loadError}</p>
+        <button onClick={() => void loadDashboardData()} className="mt-4 font-semibold underline">
+          Try again
+        </button>
       </div>
     );
   }
 
-  const summary = data.summary;
-  const tb = data.tierBreakdown;
-
-  const isLiveBackend = data?.source === 'live-ml-backend';
+  const isDemo = source !== 'live-ml-backend' && source !== 'live-python-backend';
+  const visibleAccounts = sortedCustomers.slice(0, 8);
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-16 space-y-12">
-      {/* Editorial Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
-        <div className="border-l-4 border-[#4338ca] pl-6 sm:pl-8">
-          <div className="meta mb-2">Portfolio Overview &amp; Summary</div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1a1a1a] tracking-tight">
-            Credit Card Risk Dashboard
-          </h1>
-          <p className="text-xs text-gray-500 font-sans mt-1">
-            Track total balances, see how much credit is being used, and spot high-risk accounts before payments are missed.
-          </p>
-        </div>
-
-        {/* Minimal Search Area */}
-        <form onSubmit={handleQuickSearch} className="w-full sm:w-80 flex flex-col">
-          <div className="border-b-2 border-[#1a1a1a] py-1.5 flex items-center justify-between">
-            <input
-              type="text"
-              placeholder="Type customer ID (e.g. CUST000001)..."
-              value={searchIdInput}
-              onChange={(e) => {
-                setSearchIdInput(e.target.value);
-                if (searchError) setSearchError('');
-              }}
-              className="bg-transparent border-none outline-none w-full text-xs font-sans text-[#1a1a1a] placeholder-gray-400"
-            />
-            <button type="submit" className="meta cursor-pointer hover:text-[#4338ca] ml-2">
-              FIND
+    <div className="mx-auto max-w-[1500px] space-y-7 pb-12">
+      <header className="rounded-3xl bg-gradient-to-br from-teal-700 via-teal-600 to-cyan-600 px-6 py-7 text-white shadow-lg shadow-teal-900/10 sm:px-9 sm:py-9">
+        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <div>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide">
+                CREDIT RISK OVERVIEW
+              </span>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  isDemo ? 'bg-amber-200 text-amber-950' : 'bg-emerald-200 text-emerald-950'
+                }`}
+              >
+                {isDemo ? 'Demo proxy data' : 'Live portfolio data'}
+              </span>
+            </div>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              Segment performance
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-teal-50">
+              Explore portfolio exposure and risk across the customer segments in your loaded dataset.
+              Every metric below responds to the selected filters.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <form onSubmit={handleQuickSearch} className="flex min-w-0 flex-col">
+              <div className="flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3 py-2">
+                <Search className="h-4 w-4 shrink-0 text-white/75" />
+                <input
+                  aria-label="Find customer by ID"
+                  value={searchIdInput}
+                  onChange={(event) => {
+                    setSearchIdInput(event.target.value);
+                    setSearchError('');
+                  }}
+                  placeholder="Find customer ID"
+                  className="w-full min-w-36 bg-transparent text-sm text-white outline-none placeholder:text-white/65 sm:w-48"
+                />
+                <button type="submit" className="text-xs font-bold tracking-wide text-white">
+                  FIND
+                </button>
+              </div>
+              {searchError && <span className="mt-1 text-xs text-rose-100">{searchError}</span>}
+            </form>
+            <button
+              onClick={() => void loadDashboardData()}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-teal-800 shadow-sm transition hover:bg-teal-50 disabled:opacity-60"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
             </button>
           </div>
-          {searchError && (
-            <span className="mono text-[11px] text-red-600 mt-1">{searchError}</span>
-          )}
-        </form>
+        </div>
+        {isDemo && (
+          <p className="mt-5 border-t border-white/20 pt-4 text-xs leading-5 text-teal-50">
+            Demo proxy data is shown separately when the live portfolio is unavailable. Demo records
+            are not presented as live customer data.
+          </p>
+        )}
       </header>
 
-      {/* Quick Test IDs Strip */}
-      <div className="flex items-center justify-between flex-wrap gap-2 text-xs py-2 border-y border-[#e5e7eb]">
-        <div className="flex items-center gap-2">
-          <span className="meta">Quick Customer Lookups:</span>
-          {['CUST000001', 'CUST000002', 'CUST000003', 'CUST000005', 'CUST000010'].map((id) => (
-            <button
-              key={id}
-              onClick={() => {
-                onSelectCustomer(id);
-                onNavigate('assessment');
-              }}
-              className="mono text-[11px] px-2 py-0.5 border border-[#e5e7eb] hover:border-[#1a1a1a] bg-white transition-colors"
-            >
-              {id}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4">
+      <section aria-label="Portfolio filters" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+            <Filter className="h-4 w-4 text-teal-700" />
+            Filter portfolio
+          </div>
           <button
-            onClick={loadDashboardData}
-            className="meta hover:text-[#4338ca] flex items-center gap-1 transition-colors cursor-pointer"
+            onClick={resetFilters}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition hover:text-teal-700"
           >
-            <RefreshCw className="w-3 h-3" />
-            <span>Refresh Data</span>
+            <X className="h-3.5 w-3.5" />
+            Reset filters
           </button>
         </div>
-      </div>
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 pb-8 border-b border-[#e5e7eb]">
-        {/* Metric 1 */}
-        <div className="space-y-1">
-          <div className="meta">Total Accounts</div>
-          <div className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] py-1 font-semibold">
-            {summary.totalCustomers}
-          </div>
-          <div className="meta text-emerald-700">All customer profiles active</div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-500">
+            Segment
+            <select value={segmentFilter} onChange={(event) => setSegmentFilter(event.target.value)} className={selectClassName}>
+              <option value="All">All segments</option>
+              {segments.map((segment) => <option key={segment} value={segment}>{segment}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-500">
+            Risk tier
+            <select value={tierFilter} onChange={(event) => setTierFilter(event.target.value as TierFilter)} className={selectClassName}>
+              <option value="All">All risk tiers</option>
+              {TIER_ORDER.map((tier) => <option key={tier} value={tier}>{tier} risk</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-500">
+            Card type
+            <select value={cardFilter} onChange={(event) => setCardFilter(event.target.value)} className={selectClassName}>
+              <option value="All">All card types</option>
+              {cardTypes.map((cardType) => <option key={cardType} value={cardType}>{cardType}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-500">
+            Card utilization
+            <select value={utilizationFilter} onChange={(event) => setUtilizationFilter(event.target.value as UtilizationFilter)} className={selectClassName}>
+              <option value="All">Any utilization</option>
+              <option value="0-30">0–30%</option>
+              <option value="31-60">31–60%</option>
+              <option value="61-80">61–80%</option>
+              <option value="80+">Over 80%</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-500">
+            Search records
+            <span className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-100">
+              <Search className="h-4 w-4 shrink-0 text-slate-400" />
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Name or customer ID"
+                className="w-full min-w-0 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+              />
+            </span>
+          </label>
         </div>
+      </section>
 
-        {/* Metric 2 */}
-        <div className="space-y-1">
-          <div className="meta">Chance of Default</div>
-          <div className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] py-1 font-semibold">
-            {summary.overallDefaultRate.toFixed(2)}%
-          </div>
-          <div className="meta text-[#b45309]">Avg likelihood to miss payment</div>
-        </div>
+      <section aria-label="Filtered portfolio metrics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          {
+            title: 'Accounts in view',
+            value: totals.accountCount.toLocaleString(),
+            detail: `of ${customers.length.toLocaleString()} loaded accounts`,
+            icon: Users,
+            color: 'bg-teal-50 text-teal-700',
+          },
+          {
+            title: 'Outstanding balance',
+            value: currency(totals.balance),
+            detail: `Credit limit ${currency(totals.creditLimit)}`,
+            icon: CircleDollarSign,
+            color: 'bg-blue-50 text-blue-700',
+          },
+          {
+            title: 'Average utilization',
+            value: `${totals.utilization.toFixed(1)}%`,
+            detail: 'Balance divided by total credit limit',
+            icon: CreditCard,
+            color: 'bg-violet-50 text-violet-700',
+          },
+          {
+            title: 'High-risk share',
+            value: `${totals.highRiskShare.toFixed(1)}%`,
+            detail: `${filteredCustomers.filter((customer) => tierById[customer.id] === 'High').length} high-risk accounts`,
+            icon: ShieldCheck,
+            color: 'bg-rose-50 text-rose-700',
+          },
+        ].map((metric) => {
+          const Icon = metric.icon;
+          return (
+            <article key={metric.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">{metric.title}</p>
+                  <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{metric.value}</p>
+                </div>
+                <span className={`rounded-xl p-2.5 ${metric.color}`}><Icon className="h-5 w-5" /></span>
+              </div>
+              <p className="mt-3 text-xs text-slate-500">{metric.detail}</p>
+            </article>
+          );
+        })}
+      </section>
 
-        {/* Metric 3 */}
-        <div className="space-y-1">
-          <div className="meta">High Risk Share</div>
-          <div className="text-4xl lg:text-5xl font-serif text-[#be123c] py-1 font-semibold">
-            {summary.highRiskPercentage.toFixed(1)}%
-          </div>
-          <div className="meta">{tb.highCount} accounts need attention</div>
-        </div>
-
-        {/* Metric 4 */}
-        <div className="space-y-1">
-          <div className="meta">Total Money Borrowed</div>
-          <div className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] py-1 font-semibold">
-            ${(summary.totalCreditExposure / 1000).toFixed(1)}k
-          </div>
-          <div className="meta">Credit limit used: {summary.averageUtilization.toFixed(1)}%</div>
-        </div>
-      </div>
-
-      {/* Grid Sections: Risk Segmentation & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-        {/* Left Column: Risk Segmentation Class Breakdown (4 cols) */}
-        <div className="lg:col-span-4 space-y-6">
-          <h2 className="text-2xl font-serif font-semibold text-[#1a1a1a] pb-2 border-b border-[#1a1a1a]">
-            Customer Risk Levels
-          </h2>
-
-          <div className="space-y-4">
-            <div className="border-b border-[#e5e7eb] pb-4">
-              <div className="meta text-[#4338ca]">Safe Group</div>
-              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">Low Risk ({tb.lowCount} Customers)</h4>
-              <p className="text-xs text-[#6b7280] mt-1 leading-relaxed">
-                Customers with steady on-time payments and healthy balances. Very unlikely to miss a payment.
-              </p>
+      <section className="grid gap-5 xl:grid-cols-5">
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 xl:col-span-3">
+          <div className="mb-6 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">Segment breakdown</p>
+              <h2 className="mt-1 text-xl font-semibold text-slate-900">Accounts by customer segment</h2>
+              <p className="mt-1 text-sm text-slate-500">Risk mix and account share in the filtered portfolio</p>
             </div>
-
-            <div className="border-b border-[#e5e7eb] pb-4">
-              <div className="meta text-[#b45309]">Moderate Group</div>
-              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">Medium Risk ({tb.medCount} Customers)</h4>
-              <p className="text-xs text-[#6b7280] mt-1 leading-relaxed">
-                Carries an ongoing balance or had a minor delay. Worth keeping an eye on to prevent future late fees.
-              </p>
-            </div>
-
-            <div className="pb-2">
-              <div className="meta text-[#be123c]">Warning Group</div>
-              <h4 className="text-sm font-semibold text-[#1a1a1a] mt-0.5">High Risk ({tb.highCount} Customers)</h4>
-              <p className="text-xs text-[#6b7280] mt-1 leading-relaxed">
-                Cards near their credit limit or with repeated late payments. Needs immediate contact and review.
-              </p>
-            </div>
+            <BarChart3 className="h-5 w-5 shrink-0 text-teal-700" />
           </div>
-
-          {/* Quick jump to segmentation */}
-          <button
-            onClick={() => onNavigate('segmentation')}
-            className="meta flex items-center gap-1.5 text-[#4338ca] hover:underline pt-2"
-          >
-            <span>See All Customer Groups</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
-
-        {/* Right Column: Recent Activity Data Table (8 cols) */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-[#1a1a1a]">
-            <h2 className="text-2xl font-serif font-semibold text-[#1a1a1a]">
-              Recent Accounts
-            </h2>
-            <button
-              onClick={() => onNavigate('search')}
-              className="meta text-[#4338ca] hover:underline"
-            >
-              View All 200 Customers
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b-2 border-[#1a1a1a]">
-                  <th className="py-2.5 px-2 meta">Customer ID &amp; Name</th>
-                  <th className="py-2.5 px-2 meta">Card Type</th>
-                  <th className="py-2.5 px-2 meta text-right">Current Balance</th>
-                  <th className="py-2.5 px-2 meta text-right">Card Used (%)</th>
-                  <th className="py-2.5 px-2 meta text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e5e7eb]">
-                {recentCustomers.map((c) => (
-                  <tr key={c.id} className="hover:bg-white transition-colors">
-                    <td className="py-3 px-2 mono font-bold text-[#1a1a1a]">
-                      {c.id}
-                      <span className="block font-sans font-normal text-[11px] text-gray-500">{c.fullName}</span>
-                    </td>
-                    <td className="py-3 px-2 text-[#1a1a1a]">
-                      {c.cardType}
-                    </td>
-                    <td className="py-3 px-2 mono text-right text-[#1a1a1a]">
-                      ${c.outstandingBalance.toLocaleString('en-US')}
-                    </td>
-                    <td className="py-3 px-2 mono text-right text-[#1a1a1a]">
-                      {c.creditUtilization.toFixed(1)}%
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() => {
-                          onSelectCustomer(c.id);
-                          onNavigate('assessment');
-                        }}
-                        className="meta text-[#4338ca] hover:underline cursor-pointer"
-                      >
-                        Inspect Risk
-                      </button>
-                    </td>
-                  </tr>
+          {segmentStats.length ? (
+            <div className="space-y-5">
+              {segmentStats.map((segment) => {
+                const share = totals.accountCount ? (segment.count / totals.accountCount) * 100 : 0;
+                return (
+                  <button
+                    key={segment.name}
+                    onClick={() => setSegmentFilter(segment.name)}
+                    className="block w-full rounded-xl p-2 text-left transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                    aria-label={`Filter dashboard to ${segment.name}`}
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <span className="truncate text-sm font-semibold text-slate-800">{segment.name}</span>
+                      <span className="shrink-0 text-xs text-slate-500">
+                        {segment.count} · {share.toFixed(1)}% · {currency(segment.balance)}
+                      </span>
+                    </div>
+                    <div className="flex h-3 overflow-hidden rounded-full bg-slate-100">
+                      {TIER_ORDER.map((tier) => {
+                        const width = segment.count ? (segment.tiers[tier] / segment.count) * 100 : 0;
+                        return width ? (
+                          <span
+                            key={tier}
+                            title={`${tier}: ${segment.tiers[tier]} accounts`}
+                            style={{ width: `${width}%`, backgroundColor: TIER_COLORS[tier] }}
+                          />
+                        ) : null;
+                      })}
+                    </div>
+                  </button>
+                );
+              })}
+              <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-100 pt-4">
+                {TIER_ORDER.map((tier) => (
+                  <span key={tier} className="flex items-center gap-2 text-xs text-slate-500">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: TIER_COLORS[tier] }} />
+                    {tier} risk
+                  </span>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+              No accounts match these filters.
+            </div>
+          )}
+        </article>
 
-      {/* Interactive Charts Strip */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-6 border-t border-[#e5e7eb]">
-        <div className="lg:col-span-5 space-y-4">
-          <div className="border-b border-[#e5e7eb] pb-2">
-            <span className="meta">Risk Breakdown</span>
-            <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-              How Many Customers in Each Risk Level
-            </h3>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 xl:col-span-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-violet-700">Exposure ranking</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-900">Balance by segment</h2>
+          <p className="mt-1 text-sm text-slate-500">Outstanding balances summed from matching customer records</p>
+          <div className="mt-6 space-y-5">
+            {segmentStats.length ? segmentStats.map((segment) => {
+              const maxBalance = Math.max(...segmentStats.map((item) => item.balance), 1);
+              return (
+                <button
+                  key={segment.name}
+                  onClick={() => setSegmentFilter(segment.name)}
+                  className="block w-full text-left"
+                  aria-label={`Filter dashboard to ${segment.name}`}
+                >
+                  <div className="mb-1.5 flex justify-between gap-3 text-xs">
+                    <span className="truncate font-medium text-slate-700">{segment.name}</span>
+                    <span className="shrink-0 font-semibold text-slate-900">{currency(segment.balance)}</span>
+                  </div>
+                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-400"
+                      style={{ width: `${(segment.balance / maxBalance) * 100}%` }}
+                    />
+                  </div>
+                </button>
+              );
+            }) : (
+              <div className="rounded-xl bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                No segment exposure to display.
+              </div>
+            )}
           </div>
-          <RiskDistributionChart
-            lowCount={tb.lowCount}
-            mediumCount={tb.medCount}
-            highCount={tb.highCount}
-            total={summary.totalCustomers}
-          />
-        </div>
+        </article>
+      </section>
 
-        <div className="lg:col-span-7 space-y-4">
-          <div className="border-b border-[#e5e7eb] pb-2">
-            <span className="meta">Credit Limits &amp; Balances</span>
-            <h3 className="text-xl font-serif font-semibold text-[#1a1a1a]">
-              Money Borrowed vs. Total Available Limit
-            </h3>
+      <section className="grid gap-5 xl:grid-cols-3">
+        <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
+          <div className="flex flex-col justify-between gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:px-6">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">Accounts in this view</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Showing {Math.min(visibleAccounts.length, totals.accountCount)} of {totals.accountCount} matching accounts
+              </p>
+            </div>
+            <button onClick={() => onNavigate('search')} className="inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-900">
+              Browse customers <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
-          <PortfolioExposureChart
-            lowExposure={tb.lowExposure}
-            lowLimit={tb.lowLimit}
-            medExposure={tb.medExposure}
-            medLimit={tb.medLimit}
-            highExposure={tb.highExposure}
-            highLimit={tb.highLimit}
-          />
-        </div>
-      </div>
+          {visibleAccounts.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[680px] text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-5 py-3 font-semibold sm:px-6">Customer</th>
+                    <th className="px-3 py-3 font-semibold">Segment</th>
+                    <th className="px-3 py-3 font-semibold">Risk</th>
+                    <th className="px-3 py-3 text-right font-semibold">Balance</th>
+                    <th className="px-5 py-3 text-right font-semibold sm:px-6">Utilization</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {visibleAccounts.map((customer) => {
+                    const tier = tierById[customer.id];
+                    return (
+                      <tr key={customer.id} className="transition hover:bg-teal-50/40">
+                        <td className="px-5 py-3 sm:px-6">
+                          <button
+                            onClick={() => {
+                              onSelectCustomer(customer.id);
+                              onNavigate('assessment');
+                            }}
+                            className="text-left"
+                          >
+                            <span className="block font-semibold text-slate-800">{customer.fullName}</span>
+                            <span className="font-mono text-xs text-slate-400">{customer.id}</span>
+                          </button>
+                        </td>
+                        <td className="max-w-48 truncate px-3 py-3 text-slate-600">{customer.segment || 'Unassigned'}</td>
+                        <td className="px-3 py-3">
+                          {tier ? (
+                            <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ color: TIER_COLORS[tier], backgroundColor: `${TIER_COLORS[tier]}18` }}>
+                              {tier}
+                            </span>
+                          ) : <span className="text-xs text-slate-400">Not classified</span>}
+                        </td>
+                        <td className="px-3 py-3 text-right font-medium tabular-nums text-slate-700">{currency(customer.outstandingBalance)}</td>
+                        <td className="px-5 py-3 text-right font-medium tabular-nums text-slate-700 sm:px-6">{customer.creditUtilization.toFixed(1)}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="px-6 py-12 text-center">
+              <p className="font-medium text-slate-700">No customers match the current filters.</p>
+              <button onClick={resetFilters} className="mt-2 text-sm font-semibold text-teal-700 hover:underline">Clear filters</button>
+            </div>
+          )}
+        </article>
 
-      {/* Portfolio Info Footer */}
-      <footer className="border-t border-[#e5e7eb] pt-6 mt-12 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs">
-        <p className="text-gray-500 max-w-xl text-xs leading-relaxed">
-          All 200 customer profiles are loaded from the portfolio database. Risk scores and warning flags update automatically based on each customer's actual payment history and card balance.
-        </p>
-        <div className="meta text-gray-500 shrink-0">
-          Portfolio Status: <span className="font-semibold text-[#1a1a1a]">Active (200 Accounts)</span>
-        </div>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-rose-700">Surveillance</p>
+              <h2 className="mt-1 text-xl font-semibold text-slate-900">Active alerts</h2>
+            </div>
+            <Activity className="h-5 w-5 text-rose-600" />
+          </div>
+          {activeAlerts.length ? (
+            <div className="mt-5 space-y-3">
+              {activeAlerts.map((alert) => (
+                <button
+                  key={alert.id}
+                  onClick={() => {
+                    onSelectCustomer(alert.customerId);
+                    onNavigate('assessment');
+                  }}
+                  className="w-full rounded-xl border border-slate-100 bg-slate-50 p-3 text-left transition hover:border-rose-200 hover:bg-rose-50/50"
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-semibold text-slate-500">{alert.customerId}</span>
+                    <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700">{alert.severity}</span>
+                  </span>
+                  <span className="mt-2 block line-clamp-2 text-xs leading-5 text-slate-700">{alert.triggerReason}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 rounded-xl bg-emerald-50 px-4 py-6 text-center text-sm text-emerald-800">
+              No unresolved alerts are available.
+            </div>
+          )}
+          <button onClick={() => onNavigate('alerts')} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-900">
+            View alerts <ArrowRight className="h-4 w-4" />
+          </button>
+        </article>
+      </section>
+
+      <footer className="flex flex-col justify-between gap-2 border-t border-slate-200 pt-4 text-xs text-slate-500 sm:flex-row">
+        <span>{isDemo ? 'Demo proxy records' : 'Live portfolio records'} · Metrics are calculated from the records currently matching your filters.</span>
+        <span>{totals.accountCount.toLocaleString()} accounts in current view</span>
       </footer>
     </div>
   );
