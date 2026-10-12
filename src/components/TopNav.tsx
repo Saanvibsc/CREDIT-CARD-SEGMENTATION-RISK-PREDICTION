@@ -11,14 +11,13 @@ interface TopNavProps {
 }
 
 const NAV_ITEMS: { id: NavPage; label: string }[] = [
+  { id: 'customer-dashboard', label: 'Customer Dashboard' },
+  { id: 'segment-dashboard', label: 'Segment Dashboard' },
   { id: 'search', label: 'Search Customers' },
   { id: 'assessment', label: 'Risk Analysis' },
   { id: 'alerts', label: 'Alerts' },
-  { id: 'segmentation', label: 'Customer Groups' },
   { id: 'reports', label: 'Reports' },
   { id: 'upload-report', label: 'Upload Report' },
-  { id: 'python-engine', label: 'Python Engine' },
-  { id: 'dashboard', label: 'Dashboard' },
 ];
 
 export const TopNav: React.FC<TopNavProps> = ({
@@ -60,7 +59,7 @@ export const TopNav: React.FC<TopNavProps> = ({
       {/* Brand: Rotated diamond + CG.AI */}
       <div className="flex items-center gap-6">
         <button 
-          onClick={() => onNavigate('dashboard')}
+          onClick={() => onNavigate('customer-dashboard')}
           className="flex items-center gap-2.5 text-left focus:outline-none group cursor-pointer"
         >
           <div className="w-4 h-4 border-2 border-[#1a1a1a] rotate-45 transition-transform group-hover:rotate-90 duration-300" />

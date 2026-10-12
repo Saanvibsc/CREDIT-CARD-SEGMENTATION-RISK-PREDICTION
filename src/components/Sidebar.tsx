@@ -5,12 +5,13 @@ import {
   ShieldAlert, 
   BellRing, 
   Users, 
+  User,
   FileText, 
   Upload,
   Shield, 
   ChevronRight, 
   X,
-  Terminal
+  PieChart
 } from 'lucide-react';
 import { NavPage } from '../types';
 
@@ -25,14 +26,13 @@ export interface SidebarProps {
 }
 
 const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'customer-dashboard', label: 'Customer Dashboard', icon: User },
+  { id: 'segment-dashboard', label: 'Segment Dashboard', icon: PieChart },
   { id: 'search', label: 'Search Customers', icon: Search },
   { id: 'assessment', label: 'Risk Analysis', icon: ShieldAlert },
   { id: 'alerts', label: 'Early-Warning Alerts', icon: BellRing },
-  { id: 'segmentation', label: 'Customer Groups', icon: Users },
   { id: 'reports', label: 'Risk Reports', icon: FileText },
   { id: 'upload-report', label: 'Upload Report', icon: Upload },
-  { id: 'python-engine', label: 'Python Engine', icon: Terminal },
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({

@@ -4,14 +4,15 @@
  */
 
 export type NavPage =
+  | 'customer-dashboard'
+  | 'segment-dashboard'
   | 'dashboard'
   | 'search'
   | 'assessment'
   | 'alerts'
   | 'segmentation'
   | 'reports'
-  | 'upload-report'
-  | 'python-engine';
+  | 'upload-report';
 
 export type RiskTier = 'Low' | 'Medium' | 'High';
 

@@ -11,16 +11,17 @@ import { api } from './services/api';
 import { TopNav } from './components/TopNav';
 import { NavPage } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
+import { CustomerWiseDashboard } from './components/CustomerWiseDashboard';
+import { SegmentWiseDashboard } from './components/SegmentWiseDashboard';
 import { CustomerSearch } from './components/CustomerSearch';
 import { RiskAssessment } from './components/RiskAssessment';
 import { EarlyWarningAlerts } from './components/EarlyWarningAlerts';
 import { CustomerSegmentation } from './components/CustomerSegmentation';
 import { RiskReports } from './components/RiskReports';
-import { PythonEngine } from './components/PythonEngine';
 import { UploadReport } from './components/UploadReport';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<NavPage>('dashboard');
+  const [currentPage, setCurrentPage] = useState<NavPage>('customer-dashboard');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(INITIAL_CUSTOMERS[0]?.id || 'CUST000001');
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
   const [config, setConfig] = useState<RiskConfig>(DEFAULT_RISK_CONFIG);
@@ -74,9 +75,30 @@ export default function App() {
             Backend request failed: {apiError}. Check connection settings or use the local demo proxy.
           </div>
         )}
+        {currentPage === 'customer-dashboard' && (
+          <CustomerWiseDashboard
+            selectedCustomerId={selectedCustomerId}
+            config={config}
+            onNavigate={(page) => setCurrentPage(page)}
+            onSelectCustomer={(id) => setSelectedCustomerId(id)}
+          />
+        )}
+
+        {currentPage === 'segment-dashboard' && (
+          <SegmentWiseDashboard
+            config={config}
+            onNavigate={(page) => setCurrentPage(page)}
+            onSelectCustomer={(id) => {
+              setSelectedCustomerId(id);
+              setCurrentPage('customer-dashboard');
+            }}
+          />
+        )}
+
         {currentPage === 'dashboard' && (
           <Dashboard
             config={config}
+            selectedCustomerId={selectedCustomerId}
             onNavigate={(page) => setCurrentPage(page)}
             onSelectCustomer={(id) => setSelectedCustomerId(id)}
           />
@@ -109,10 +131,13 @@ export default function App() {
         )}
 
         {currentPage === 'segmentation' && (
-          <CustomerSegmentation
+          <SegmentWiseDashboard
             config={config}
-            onSelectCustomer={(id) => setSelectedCustomerId(id)}
             onNavigate={(page) => setCurrentPage(page)}
+            onSelectCustomer={(id) => {
+              setSelectedCustomerId(id);
+              setCurrentPage('customer-dashboard');
+            }}
           />
         )}
 
@@ -127,13 +152,6 @@ export default function App() {
         )}
 
         {currentPage === 'upload-report' && <UploadReport config={config} />}
-
-        {currentPage === 'python-engine' && (
-          <PythonEngine
-            onNavigate={(page) => setCurrentPage(page)}
-            selectedCustomerId={selectedCustomerId}
-          />
-        )}
       </main>
     </div>
   );
