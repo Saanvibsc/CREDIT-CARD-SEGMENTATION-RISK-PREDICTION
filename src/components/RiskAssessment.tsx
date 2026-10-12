@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ArrowLeft, 
   FileText, 
@@ -7,12 +7,14 @@ import {
   CheckCircle2, 
   AlertTriangle,
   Server,
-  Cpu
+  Cpu,
+  Sparkles,
 } from 'lucide-react';
 import { Customer, RiskConfig, PredictionResponse, RepaymentRecord, FactorContribution } from '../types';
 import { api } from '../services/api';
 import { RiskScoreGauge } from './charts/RiskCharts';
 import { NavPage } from './Sidebar';
+import { generateLocalRiskNote } from '../utils/riskAssessmentNote';
 
 interface RiskAssessmentProps {
   customer: Customer;
@@ -97,6 +99,14 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
 
   const activePrediction = isSimulating && simPrediction ? simPrediction : baselinePrediction;
   const assessment = activePrediction?.assessment;
+  const localRiskNote = useMemo(() => {
+    if (!assessment) return '';
+    return generateLocalRiskNote(customer, assessment, {
+      utilization: isSimulating ? simUtilization : customer.creditUtilization,
+      latePayments: isSimulating ? simDelays : customer.delayedPayments6M,
+      annualIncome: customer.annualIncome * (1 + simIncomeFactor / 100),
+    });
+  }, [assessment, customer, isSimulating, simUtilization, simDelays, simIncomeFactor]);
 
   const handleDownloadReport = async () => {
     if (!assessment) return;
@@ -393,6 +403,22 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
       </div>
 
       {/* Recommended Actions */}
+      <section className="rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-white p-6 shadow-sm sm:p-8">
+        <div className="flex items-start gap-3">
+          <span className="rounded-xl bg-teal-100 p-2.5 text-teal-800">
+            <Sparkles className="h-5 w-5" />
+          </span>
+          <div>
+            <span className="meta text-teal-800">Local model insight</span>
+            <h3 className="mt-1 text-xl font-semibold text-slate-900">Profile-based risk note</h3>
+            <p className="mt-3 text-sm leading-6 text-slate-700">{localRiskNote}</p>
+            <p className="mt-3 text-xs text-slate-500">
+              Generated locally from the customer profile and current risk assessment. No external AI service is used; this note is not saved to customer history.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <div className="bg-white border border-[#e5e7eb] p-6 sm:p-8 space-y-4">
         <div className="border-b border-[#1a1a1a] pb-2 flex items-center justify-between">
           <div>

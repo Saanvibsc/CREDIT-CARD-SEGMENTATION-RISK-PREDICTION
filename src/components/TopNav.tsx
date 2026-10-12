@@ -11,13 +11,14 @@ interface TopNavProps {
 }
 
 const NAV_ITEMS: { id: NavPage; label: string }[] = [
-  { id: 'dashboard', label: 'Dashboard' },
   { id: 'search', label: 'Search Customers' },
   { id: 'assessment', label: 'Risk Analysis' },
   { id: 'alerts', label: 'Alerts' },
   { id: 'segmentation', label: 'Customer Groups' },
   { id: 'reports', label: 'Reports' },
+  { id: 'upload-report', label: 'Upload Report' },
   { id: 'python-engine', label: 'Python Engine' },
+  { id: 'dashboard', label: 'Dashboard' },
 ];
 
 export const TopNav: React.FC<TopNavProps> = ({

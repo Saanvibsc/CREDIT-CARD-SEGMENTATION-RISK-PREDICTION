@@ -73,6 +73,16 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
 
   const { customer, assessment, source } = reportData;
   const isLive = source === 'live-ml-backend';
+  const keySignals = assessment.factorContributions
+    .filter((factor) => factor.impact !== 'neutral')
+    .sort((left, right) => Math.abs(right.weightScore) - Math.abs(left.weightScore))
+    .slice(0, 2);
+  const riskInterpretation =
+    assessment.riskTier === 'Low'
+      ? `The model places this account in the low-risk band (score at or below ${config.lowRiskUpperBound}). Current indicators suggest lower estimated repayment risk relative to the configured bands.`
+      : assessment.riskTier === 'Medium'
+        ? `The model places this account in the medium-risk band (score ${config.lowRiskUpperBound + 1} to ${config.highRiskLowerBound - 1}). The account warrants routine monitoring under the configured risk bands.`
+        : `The model places this account in the high-risk band (score at or above ${config.highRiskLowerBound}). Review the account indicators and recommended actions before making a credit decision.`;
 
   return (
     <div className="max-w-4xl mx-auto pb-16 space-y-10">
@@ -193,6 +203,40 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
               <span className="meta">Customer Group</span>
               <div className="mono font-bold text-sm text-[#4338ca] mt-0.5">{customer.segment}</div>
             </div>
+          </div>
+        </section>
+
+        <section className="space-y-3 border-l-4 border-[#4338ca] bg-[#fdfcf9] p-5">
+          <div>
+            <h3 className="meta font-bold text-[#4338ca]">Assessment narrative</h3>
+            <p className="mt-2 text-sm leading-6 text-[#1a1a1a]">
+              {customer.fullName} holds a {customer.cardType} account in the {customer.segment || 'unassigned'} segment.
+              The current balance is ${customer.outstandingBalance.toLocaleString('en-US')} against a
+              ${customer.creditLimit.toLocaleString('en-US')} limit ({customer.creditUtilization.toFixed(1)}% utilization).
+              The assessment estimates a {assessment.defaultProbability.toFixed(1)}% default probability and assigns
+              a risk score of {assessment.riskScore}/100.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[#1a1a1a]">{riskInterpretation}</p>
+            {keySignals.length > 0 ? (
+              <div className="mt-3 space-y-2">
+                <p className="meta">Most influential returned assessment factors</p>
+                {keySignals.map((factor) => (
+                  <p key={factor.factor} className="text-xs leading-5 text-gray-600">
+                    <strong className={factor.impact === 'negative' ? 'text-[#be123c]' : 'text-[#4338ca]'}>
+                      {factor.factor}:
+                    </strong>{' '}
+                    {factor.description}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-xs text-gray-500">
+                The assessment did not return factor-level details for this report.
+              </p>
+            )}
+            <p className="mt-3 text-[11px] leading-5 text-gray-500">
+              This narrative summarizes the profile fields and model response shown in this report; it is not a substitute for analyst review.
+            </p>
           </div>
         </section>
 
