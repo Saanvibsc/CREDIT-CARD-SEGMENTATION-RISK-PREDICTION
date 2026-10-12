@@ -434,14 +434,14 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
       </div>
 
       {/* What-If Stress Simulator */}
-      <div className="bg-[#1a1a1a] text-white p-6 sm:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+      <div className="bg-white border-2 border-[#1a1a1a] text-[#1a1a1a] p-6 sm:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e5e7eb] pb-4">
           <div>
-            <div className="meta text-gray-400">Interactive Simulation</div>
-            <h2 className="text-2xl font-serif font-semibold text-white mt-1">
+            <div className="meta text-gray-500">Interactive Simulation</div>
+            <h2 className="text-2xl font-serif font-semibold text-[#1a1a1a] mt-1">
               "What-If" Scenario Tester
             </h2>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               Move the sliders below to see how paying off debt or missing a payment would change this customer's score in real time.
             </p>
           </div>
@@ -449,7 +449,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
           {isSimulating && (
             <button
               onClick={handleResetSimulation}
-              className="mono text-xs px-3 py-1.5 border border-gray-700 hover:border-white text-gray-200 transition-colors"
+              className="mono text-xs px-3 py-1.5 border border-[#1a1a1a] hover:bg-gray-100 text-[#1a1a1a] transition-colors cursor-pointer"
             >
               Reset to Actual Values
             </button>
@@ -460,8 +460,8 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
           {/* Slider 1 */}
           <div className="space-y-2">
             <div className="flex justify-between mono">
-              <span className="text-gray-400">Card Limit Used:</span>
-              <span className="text-[#bfdbfe] font-bold">{simUtilization.toFixed(0)}%</span>
+              <span className="text-gray-600">Card Limit Used:</span>
+              <span className="text-[#4338ca] font-bold">{simUtilization.toFixed(0)}%</span>
             </div>
             <input
               type="range"
@@ -484,8 +484,8 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
           {/* Slider 2 */}
           <div className="space-y-2">
             <div className="flex justify-between mono">
-              <span className="text-gray-400">Missed Payments (6 Mos):</span>
-              <span className="text-[#bfdbfe] font-bold">{simDelays}</span>
+              <span className="text-gray-600">Missed Payments (6 Mos):</span>
+              <span className="text-[#4338ca] font-bold">{simDelays}</span>
             </div>
             <input
               type="range"
@@ -508,8 +508,8 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
           {/* Slider 3 */}
           <div className="space-y-2">
             <div className="flex justify-between mono">
-              <span className="text-gray-400">Income Change:</span>
-              <span className="text-[#bfdbfe] font-bold">{simIncomeFactor > 0 ? `+${simIncomeFactor}%` : `${simIncomeFactor}%`}</span>
+              <span className="text-gray-600">Income Change:</span>
+              <span className="text-[#4338ca] font-bold">{simIncomeFactor > 0 ? `+${simIncomeFactor}%` : `${simIncomeFactor}%`}</span>
             </div>
             <input
               type="range"
@@ -532,24 +532,24 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
         </div>
 
         {isSimulating && baselinePrediction && (
-          <div className="p-4 border border-gray-800 bg-[#242424] flex items-center justify-between mono text-xs">
+          <div className="p-4 border border-[#e5e7eb] bg-[#fdfcf9] flex flex-col sm:flex-row sm:items-center justify-between gap-3 mono text-xs">
             <div>
-              <span className="text-gray-400">Original Risk Score: </span>
-              <span className="text-white font-bold">{baselinePrediction.assessment.riskScore}</span>
-              <span className="text-gray-500 mx-2">→ Simulated Score:</span>
+              <span className="text-gray-600">Original Risk Score: </span>
+              <span className="text-[#1a1a1a] font-bold">{baselinePrediction.assessment.riskScore}</span>
+              <span className="text-gray-400 mx-2">→ Simulated Score:</span>
               <span className={`font-bold text-sm ${
-                assessment.riskScore > baselinePrediction.assessment.riskScore ? 'text-rose-400' : 'text-emerald-400'
+                assessment.riskScore > baselinePrediction.assessment.riskScore ? 'text-[#be123c]' : 'text-emerald-700'
               }`}>
                 {assessment.riskScore}
               </span>
             </div>
 
             <div>
-              <span className="text-gray-400">Original Default Chance: </span>
-              <span className="text-white font-bold">{baselinePrediction.assessment.defaultProbability.toFixed(1)}%</span>
-              <span className="text-gray-500 mx-2">→ Simulated Chance:</span>
+              <span className="text-gray-600">Original Default Chance: </span>
+              <span className="text-[#1a1a1a] font-bold">{baselinePrediction.assessment.defaultProbability.toFixed(1)}%</span>
+              <span className="text-gray-400 mx-2">→ Simulated Chance:</span>
               <span className={`font-bold text-sm ${
-                assessment.defaultProbability > baselinePrediction.assessment.defaultProbability ? 'text-rose-400' : 'text-emerald-400'
+                assessment.defaultProbability > baselinePrediction.assessment.defaultProbability ? 'text-[#be123c]' : 'text-emerald-700'
               }`}>
                 {assessment.defaultProbability.toFixed(1)}%
               </span>

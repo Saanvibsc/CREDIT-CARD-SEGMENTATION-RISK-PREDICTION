@@ -1,19 +1,4 @@
 import { 
-  Customer, 
-  EarlyWarningAlert, 
-  AlertStatus, 
-  RiskConfig, 
-  ComputedRiskAssessment, 
-  PredictionResponse, 
-  PortfolioSummaryResponse, 
-  DataSourceType,
-  ApiConfig,
-  EndpointContract,
-  TestPredictionItem,
-  ValidationModelComparisonItem,
-  ModelPipelineSpec
-} from '../types';
-import { 
   INITIAL_CUSTOMERS, 
   INITIAL_ALERTS, 
   SEGMENTS_DATA,
@@ -23,7 +8,7 @@ import {
 } from '../data/mockData';
 import { calculateRiskAssessment, DEFAULT_RISK_CONFIG } from '../utils/scoringEngine';
 
-export const API_ENDPOINTS_DOCUMENTATION: EndpointContract[] = [
+export const API_ENDPOINTS_DOCUMENTATION = [
   {
     method: 'GET',
     path: '/api/v1/portfolio/summary',
@@ -142,36 +127,38 @@ export const API_ENDPOINTS_DOCUMENTATION: EndpointContract[] = [
 ];
 
 class CreditGuardApiService {
-  private config: ApiConfig = {
-    mode: 'mock',
-    baseUrl: '',
-    timeoutMs: 3000,
-    connectionStatus: 'connected',
-  };
+  constructor() {
+    this.config = {
+      mode: 'mock',
+      baseUrl: '',
+      timeoutMs: 3000,
+      connectionStatus: 'connected',
+    };
 
-  // In-memory state for mock mode persistence
-  private mockCustomers: Customer[] = [...INITIAL_CUSTOMERS];
-  private mockAlerts: EarlyWarningAlert[] = [...INITIAL_ALERTS];
+    // In-memory state for mock mode persistence
+    this.mockCustomers = [...INITIAL_CUSTOMERS];
+    this.mockAlerts = [...INITIAL_ALERTS];
+  }
 
-  public getConfig(): ApiConfig {
+  getConfig() {
     return { ...this.config };
   }
 
-  public setConfig(updated: Partial<ApiConfig>): void {
+  setConfig(updated) {
     this.config = { ...this.config, ...updated };
   }
 
   /**
    * Helper: simulate network latency in mock mode
    */
-  private async simulateLatency(ms = 120): Promise<void> {
+  async simulateLatency(ms = 120) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * Healthcheck test against live backend URL
    */
-  public async testBackendConnection(url: string): Promise<{ connected: boolean; latencyMs: number; message: string; version?: string }> {
+  async testBackendConnection(url) {
     if (!url || url.trim() === '') {
       return {
         connected: true,
@@ -220,7 +207,7 @@ class CreditGuardApiService {
           message: `Backend returned HTTP ${response.status}: ${response.statusText}`,
         };
       }
-    } catch (err: any) {
+    } catch (err) {
       const latencyMs = Math.round(performance.now() - startTime);
       return {
         connected: false,
@@ -235,7 +222,7 @@ class CreditGuardApiService {
   /**
    * Endpoint 1: Portfolio Summary
    */
-  public async getPortfolioSummary(riskConfig: RiskConfig = DEFAULT_RISK_CONFIG): Promise<PortfolioSummaryResponse> {
+  async getPortfolioSummary(riskConfig = DEFAULT_RISK_CONFIG) {
     if (this.config.mode === 'live') {
       try {
         const params = new URLSearchParams({
@@ -323,7 +310,7 @@ class CreditGuardApiService {
   /**
    * Endpoint 2: Search Customers
    */
-  public async searchCustomers(query?: string, tier?: string, cardType?: string, riskConfig = DEFAULT_RISK_CONFIG): Promise<Customer[]> {
+  async searchCustomers(query, tier, cardType, riskConfig = DEFAULT_RISK_CONFIG) {
     if (this.config.mode === 'live') {
       try {
         const params = new URLSearchParams();
@@ -372,7 +359,7 @@ class CreditGuardApiService {
   /**
    * Endpoint 3: Get Customer by ID
    */
-  public async getCustomerById(id: string): Promise<Customer | null> {
+  async getCustomerById(id) {
     if (this.config.mode === 'live') {
       try {
         const res = await fetch(`${this.config.baseUrl}/api/v1/customers/${encodeURIComponent(id)}`);
@@ -384,7 +371,7 @@ class CreditGuardApiService {
     }
 
     await this.simulateLatency(60);
-    const upperId = id.toUpperCase();
+    const upperId = String(id).toUpperCase();
     let found = this.mockCustomers.find((c) => c.id.toUpperCase() === upperId);
     if (!found && upperId.startsWith('CUST')) {
       const numMatch = upperId.match(/\d+/);
@@ -401,11 +388,7 @@ class CreditGuardApiService {
   /**
    * Endpoint 4: Predict Risk / Score Calculation
    */
-  public async predictRisk(
-    customerId: string,
-    overrides?: { utilization?: number; delayedPayments?: number; annualIncome?: number },
-    riskConfig: RiskConfig = DEFAULT_RISK_CONFIG
-  ): Promise<PredictionResponse> {
+  async predictRisk(customerId, overrides, riskConfig = DEFAULT_RISK_CONFIG) {
     const startTime = performance.now();
 
     if (this.config.mode === 'live') {
@@ -446,7 +429,7 @@ class CreditGuardApiService {
       source: 'demo-proxy',
       latencyMs,
       modelMeta: {
-        engine: 'TypeScript Deterministic Underwriting Proxy',
+        engine: 'Deterministic Underwriting Proxy',
         version: '1.0.0-demo',
         algorithm: 'Rule-Weighted Risk Index + Calibrated Sigmoid Logit',
         calibrated: false,
@@ -457,7 +440,7 @@ class CreditGuardApiService {
   /**
    * Endpoint 5: Get Early-Warning Alerts
    */
-  public async getAlerts(severity?: string, status?: string): Promise<EarlyWarningAlert[]> {
+  async getAlerts(severity, status) {
     if (this.config.mode === 'live') {
       try {
         const params = new URLSearchParams();
@@ -484,7 +467,7 @@ class CreditGuardApiService {
   /**
    * Endpoint 6: Update Alert Status
    */
-  public async updateAlertStatus(alertId: string, newStatus: AlertStatus): Promise<EarlyWarningAlert> {
+  async updateAlertStatus(alertId, newStatus) {
     if (this.config.mode === 'live') {
       try {
         const res = await fetch(`${this.config.baseUrl}/api/v1/alerts/${encodeURIComponent(alertId)}/status`, {
@@ -515,7 +498,7 @@ class CreditGuardApiService {
   /**
    * Endpoint 7: Segmentation & K-Means Clusters
    */
-  public async getSegmentationData(): Promise<{ segments: typeof SEGMENTS_DATA; customers: Customer[]; totalCustomers?: number }> {
+  async getSegmentationData() {
     if (this.config.mode === 'live') {
       try {
         const res = await fetch(`${this.config.baseUrl}/api/v1/segmentation/clusters`);
@@ -535,10 +518,7 @@ class CreditGuardApiService {
   /**
    * Endpoint 8: Report Dossier Generation
    */
-  public async generateReportData(
-    customerId: string, 
-    riskConfig: RiskConfig = DEFAULT_RISK_CONFIG
-  ): Promise<{ customer: Customer; assessment: ComputedRiskAssessment; source: DataSourceType }> {
+  async generateReportData(customerId, riskConfig = DEFAULT_RISK_CONFIG) {
     const customer = await this.getCustomerById(customerId);
     if (!customer) {
       throw new Error(`Cannot generate report: Customer ${customerId} not found.`);
@@ -553,25 +533,25 @@ class CreditGuardApiService {
   }
 
   /**
-   * Endpoint 9: Get Out-of-Sample Test Set Predictions (creditguard_test_predictions)
+   * Endpoint 9: Get Out-of-Sample Test Set Predictions
    */
-  public async getTestPredictions(): Promise<TestPredictionItem[]> {
+  async getTestPredictions() {
     await this.simulateLatency(70);
     return [...TEST_PREDICTIONS];
   }
 
   /**
-   * Endpoint 10: Get Model Validation & Comparison Benchmarks (creditguard_validation_model_comparison)
+   * Endpoint 10: Get Model Validation & Comparison Benchmarks
    */
-  public async getValidationModels(): Promise<ValidationModelComparisonItem[]> {
+  async getValidationModels() {
     await this.simulateLatency(60);
     return [...VALIDATION_MODELS];
   }
 
   /**
-   * Endpoint 11: Get Pipeline Specification and Pickled Model Metadata (model.pkl / creditguard_model.pkl)
+   * Endpoint 11: Get Pipeline Specification and Pickled Model Metadata
    */
-  public async getModelPipelineSpec(): Promise<ModelPipelineSpec> {
+  async getModelPipelineSpec() {
     await this.simulateLatency(50);
     return { ...MODEL_PIPELINE_SPEC };
   }
@@ -579,22 +559,19 @@ class CreditGuardApiService {
   /**
    * Endpoint 12: Interactive Model Retraining & Calibration Simulator
    */
-  public async simulateModelRetraining(
-    hyperparams?: Record<string, any>
-  ): Promise<{ updatedSpec: ModelPipelineSpec; durationMs: number; log: string[] }> {
+  async simulateModelRetraining(hyperparams) {
     await this.simulateLatency(450);
     const nTrees = Number(hyperparams?.n_estimators || MODEL_PIPELINE_SPEC.hyperparameters.n_estimators);
     const lr = Number(hyperparams?.learning_rate || MODEL_PIPELINE_SPEC.hyperparameters.learning_rate);
     const depth = Number(hyperparams?.max_depth || MODEL_PIPELINE_SPEC.hyperparameters.max_depth);
     
-    // Compute adjusted evaluation metrics from new hyperparameters
     const aucBonus = (nTrees >= 200 ? 0.005 : -0.01) + (lr >= 0.03 && lr <= 0.08 ? 0.004 : -0.015) + (depth === 4 ? 0.003 : 0);
     const newAuc = Math.min(0.94, Math.max(0.82, parseFloat((MODEL_PIPELINE_SPEC.metrics.roc_auc + aucBonus).toFixed(3))));
     const newGini = parseFloat(((newAuc * 2) - 1).toFixed(3));
     const newKs = parseFloat((newAuc * 58 - 0.5).toFixed(1));
     const newBrier = parseFloat((0.058 - aucBonus * 0.4).toFixed(3));
 
-    const updatedSpec: ModelPipelineSpec = {
+    const updatedSpec = {
       ...MODEL_PIPELINE_SPEC,
       hyperparameters: {
         ...MODEL_PIPELINE_SPEC.hyperparameters,
@@ -612,7 +589,7 @@ class CreditGuardApiService {
       `[TRAINING] Fitting GradientBoostingClassifier(n_estimators=${nTrees}, learning_rate=${lr}, max_depth=${depth})...`,
       `[CV-FOLD] 5-Fold Stratified Cross-Validation complete across default/non-default classes.`,
       `[CALIBRATION] CalibratedClassifierCV Platt scaling applied for reliable probability scores.`,
-      `[ARTIFACT] Serialized trained pipeline weights to model.pkl and creditguard_model.pkl.`,
+      `[ARTIFACT] Serialized trained pipeline weights to model.pkl.`,
       `[BENCHMARK] Validation ROC-AUC achieved: ${newAuc} | KS-Stat: ${newKs}% | Brier Score: ${newBrier}`
     ];
 

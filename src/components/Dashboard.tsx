@@ -9,8 +9,7 @@ import {
   Clock,
   ArrowRight,
   RefreshCw,
-  Server,
-  Cpu
+  Server
 } from 'lucide-react';
 import { Customer, EarlyWarningAlert, RiskConfig, PortfolioSummaryResponse } from '../types';
 import { api } from '../services/api';
@@ -21,14 +20,12 @@ interface DashboardProps {
   config: RiskConfig;
   onNavigate: (page: NavPage) => void;
   onSelectCustomer: (customerId: string) => void;
-  onOpenModelHub?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   config,
   onNavigate,
   onSelectCustomer,
-  onOpenModelHub,
 }) => {
   const [data, setData] = useState<PortfolioSummaryResponse | null>(null);
   const [recentCustomers, setRecentCustomers] = useState<Customer[]>([]);
@@ -162,15 +159,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         <div className="flex items-center gap-4">
-          {onOpenModelHub && (
-            <button
-              onClick={onOpenModelHub}
-              className="meta text-[#4338ca] hover:underline flex items-center gap-1 cursor-pointer font-semibold"
-            >
-              <Cpu className="w-3.5 h-3.5" />
-              <span>Model &amp; Data Files (model.pkl)</span>
-            </button>
-          )}
           <button
             onClick={loadDashboardData}
             className="meta hover:text-[#4338ca] flex items-center gap-1 transition-colors cursor-pointer"
@@ -359,35 +347,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Service Footer */}
-      <section className="bg-[#1a1a1a] text-white p-6 sm:p-8 mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="max-w-2xl space-y-2">
-          <div className="inline-block mono text-[10px] uppercase tracking-wider px-2.5 py-1 bg-[#2a2a2a] border border-gray-700 text-[#bfdbfe]">
-            Portfolio Intelligence Engine
-          </div>
-          <p className="mono text-xs opacity-80 leading-relaxed">
-            All 200 customer profiles are loaded from the portfolio database. Risk scores and warning flags update automatically based on each customer's actual payment history and card balance.
-          </p>
+      {/* Portfolio Info Footer */}
+      <footer className="border-t border-[#e5e7eb] pt-6 mt-12 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs">
+        <p className="text-gray-500 max-w-xl text-xs leading-relaxed">
+          All 200 customer profiles are loaded from the portfolio database. Risk scores and warning flags update automatically based on each customer's actual payment history and card balance.
+        </p>
+        <div className="meta text-gray-500 shrink-0">
+          Portfolio Status: <span className="font-semibold text-[#1a1a1a]">Active (200 Accounts)</span>
         </div>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          {onOpenModelHub && (
-            <button
-              onClick={onOpenModelHub}
-              className="py-2.5 px-4 bg-[#4338ca] hover:bg-[#3730a3] text-white mono text-xs uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Cpu className="w-3.5 h-3.5" />
-              <span>Model &amp; Datasets (model.pkl)</span>
-            </button>
-          )}
-          <div className="text-left md:text-right shrink-0">
-            <div className="meta text-gray-400">System Status</div>
-            <div className="mono text-base font-bold text-white">
-              Trained Model Active · 200 Accounts
-            </div>
-          </div>
-        </div>
-      </section>
+      </footer>
     </div>
   );
 };

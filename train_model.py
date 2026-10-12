@@ -11,8 +11,8 @@ import csv
 import pickle
 import math
 
-DATA_PATH = os.environ.get("DATA_PATH", "combined_credit_risk_realistic_with_ids.csv")
-MODEL_OUT = os.environ.get("MODEL_OUT", "creditguard_model.pkl")
+DATA_PATH = os.environ.get("DATA_PATH", "data/combined_credit_risk_realistic_with_ids.csv" if os.path.exists("data/combined_credit_risk_realistic_with_ids.csv") else "combined_credit_risk_realistic_with_ids.csv")
+MODEL_OUT = os.environ.get("MODEL_OUT", "model.pkl")
 
 def load_dataset(filepath):
     if not os.path.exists(filepath):

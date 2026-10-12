@@ -1,6 +1,4 @@
-import { Customer, ComputedRiskAssessment, RiskConfig, RiskFactorItem, RiskTier } from '../types';
-
-export const DEFAULT_RISK_CONFIG: RiskConfig = {
+export const DEFAULT_RISK_CONFIG = {
   lowRiskUpperBound: 34,
   highRiskLowerBound: 65,
   utilizationAlertThreshold: 80,
@@ -8,27 +6,23 @@ export const DEFAULT_RISK_CONFIG: RiskConfig = {
 };
 
 /**
- * Transparent, deterministic placeholder scoring engine for demonstration purposes.
+ * Transparent, deterministic scoring engine for demonstration purposes.
  * Note: This implements a calibrated rule-based heuristic proxy to illustrate risk scoring
  * workflows and will be replaced with a production Logistic Regression model backend in production.
  */
 export function calculateRiskAssessment(
-  customer: Customer,
-  config: RiskConfig = DEFAULT_RISK_CONFIG,
-  simulatedOverrides?: {
-    utilization?: number;
-    delayedPayments?: number;
-    annualIncome?: number;
-  }
-): ComputedRiskAssessment {
+  customer,
+  config = DEFAULT_RISK_CONFIG,
+  simulatedOverrides
+) {
   const utilization = simulatedOverrides?.utilization ?? customer.creditUtilization;
   const delayedPayments = simulatedOverrides?.delayedPayments ?? customer.delayedPayments6M;
   const income = simulatedOverrides?.annualIncome ?? customer.annualIncome;
 
-  const factorContributions: RiskFactorItem[] = [];
-  const positiveIndicators: string[] = [];
-  const negativeIndicators: string[] = [];
-  const recommendedActions: string[] = [];
+  const factorContributions = [];
+  const positiveIndicators = [];
+  const negativeIndicators = [];
+  const recommendedActions = [];
 
   // 1. Credit Utilization Factor (Base weight up to 35 pts)
   let utilScore = 0;
@@ -219,15 +213,13 @@ export function calculateRiskAssessment(
   const clampedRiskScore = Math.min(100, Math.max(2, Math.round(rawSum)));
 
   // Probability of Default (PD) calculation:
-  // Distinct econometric logistic calibration proxy
-  // PD = 1 / (1 + exp(-(logit_intercept + beta * riskScore)))
   // Logit calibrated so RiskScore 15 -> ~1.8%, 35 -> ~4.5%, 65 -> ~18.2%, 95 -> ~64%
   const z = -4.2 + (clampedRiskScore * 0.052);
   const rawPd = (1 / (1 + Math.exp(-z))) * 100;
   const defaultProbability = parseFloat(Math.min(92, Math.max(0.8, rawPd)).toFixed(1));
 
   // Determine Risk Tier from configurable thresholds
-  let riskTier: RiskTier;
+  let riskTier;
   if (clampedRiskScore <= config.lowRiskUpperBound) {
     riskTier = 'Low';
   } else if (clampedRiskScore < config.highRiskLowerBound) {

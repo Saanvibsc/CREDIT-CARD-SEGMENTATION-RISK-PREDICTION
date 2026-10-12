@@ -6,34 +6,12 @@ import {
   BellRing, 
   Users, 
   FileText, 
-  Settings as SettingsIcon,
   Shield,
   ChevronRight,
-  Menu,
-  X,
-  GitCompare,
-  Layers,
-  Cpu
+  X
 } from 'lucide-react';
-import { api } from '../services/api';
 
-export type NavPage = 
-  | 'dashboard'
-  | 'search'
-  | 'assessment'
-  | 'alerts'
-  | 'segmentation'
-  | 'reports';
-
-interface SidebarProps {
-  currentPage: NavPage;
-  onNavigate: (page: NavPage) => void;
-  isOpenMobile: boolean;
-  onToggleMobile: () => void;
-  criticalAlertCount: number;
-}
-
-const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'search', label: 'Search Customers', icon: Search },
   { id: 'assessment', label: 'Risk Analysis', icon: ShieldAlert },
@@ -42,7 +20,7 @@ const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ class
   { id: 'reports', label: 'Risk Reports', icon: FileText },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({
+export const Sidebar = ({
   currentPage,
   onNavigate,
   isOpenMobile,

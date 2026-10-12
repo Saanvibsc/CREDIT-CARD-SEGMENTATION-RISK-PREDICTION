@@ -16,7 +16,6 @@ import { RiskAssessment } from './components/RiskAssessment';
 import { EarlyWarningAlerts } from './components/EarlyWarningAlerts';
 import { CustomerSegmentation } from './components/CustomerSegmentation';
 import { RiskReports } from './components/RiskReports';
-import { ModelHubModal } from './components/ModelHubModal';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavPage>('dashboard');
@@ -26,7 +25,6 @@ export default function App() {
   const [activeAlertCount, setActiveAlertCount] = useState<number>(6);
   const [apiRefreshKey, setApiRefreshKey] = useState<number>(0);
   const [apiError, setApiError] = useState('');
-  const [isModelHubOpen, setIsModelHubOpen] = useState(false);
 
   // Load customer index for customer switcher and report menus
   useEffect(() => {
@@ -65,7 +63,6 @@ export default function App() {
         onNavigate={(page) => setCurrentPage(page)}
         onSelectCustomer={(id) => setSelectedCustomerId(id)}
         activeAlertCount={activeAlertCount}
-        onOpenModelHub={() => setIsModelHubOpen(true)}
       />
 
       {/* Main Viewport Container */}
@@ -80,7 +77,6 @@ export default function App() {
             config={config}
             onNavigate={(page) => setCurrentPage(page)}
             onSelectCustomer={(id) => setSelectedCustomerId(id)}
-            onOpenModelHub={() => setIsModelHubOpen(true)}
           />
         )}
 
@@ -128,12 +124,6 @@ export default function App() {
           />
         )}
       </main>
-
-      {/* Model & Dataset Inspection Modal */}
-      <ModelHubModal
-        isOpen={isModelHubOpen}
-        onClose={() => setIsModelHubOpen(false)}
-      />
     </div>
   );
 }

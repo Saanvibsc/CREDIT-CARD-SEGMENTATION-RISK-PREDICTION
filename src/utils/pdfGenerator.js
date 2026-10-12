@@ -1,7 +1,6 @@
 import { jsPDF } from 'jspdf';
-import { Customer, ComputedRiskAssessment } from '../types';
 
-export function generateRiskReportPDF(customer: Customer, assessment: ComputedRiskAssessment) {
+export function generateRiskReportPDF(customer, assessment) {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -70,7 +69,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setTextColor(100, 116, 139);
   doc.text('Annual Income:', col3, y + 6);
   doc.setTextColor(15, 23, 42);
-  doc.text(`$${customer.annualIncome.toLocaleString('en-US')}`, col4, y + 6);
+  doc.text(`$${Number(customer.annualIncome).toLocaleString('en-US')}`, col4, y + 6);
 
   // Row 2
   doc.setTextColor(100, 116, 139);
@@ -87,18 +86,18 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setTextColor(100, 116, 139);
   doc.text('Credit Card Limit:', col1, y + 20);
   doc.setTextColor(15, 23, 42);
-  doc.text(`$${customer.creditLimit.toLocaleString('en-US')}`, col2, y + 20);
+  doc.text(`$${Number(customer.creditLimit).toLocaleString('en-US')}`, col2, y + 20);
 
   doc.setTextColor(100, 116, 139);
   doc.text('Current Balance:', col3, y + 20);
   doc.setTextColor(15, 23, 42);
-  doc.text(`$${customer.outstandingBalance.toLocaleString('en-US')}`, col4, y + 20);
+  doc.text(`$${Number(customer.outstandingBalance).toLocaleString('en-US')}`, col4, y + 20);
 
   // Row 4
   doc.setTextColor(100, 116, 139);
   doc.text('Card Limit Used (%):', col1, y + 26);
   doc.setTextColor(15, 23, 42);
-  doc.text(`${customer.creditUtilization.toFixed(1)}%`, col2, y + 26);
+  doc.text(`${Number(customer.creditUtilization).toFixed(1)}%`, col2, y + 26);
 
   doc.setTextColor(100, 116, 139);
   doc.text('Customer Group:', col3, y + 26);
@@ -151,7 +150,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setFontSize(15);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(20, 33, 61);
-  doc.text(`${assessment.defaultProbability.toFixed(1)}%`, box2X + 4, y + 16);
+  doc.text(`${Number(assessment.defaultProbability).toFixed(1)}%`, box2X + 4, y + 16);
 
   // Box 3: Risk Classification Tier
   const box3X = margin + (boxWidth * 2) + 6;
@@ -201,11 +200,11 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
 
-  assessment.factorContributions.slice(0, 5).forEach((item) => {
+  (assessment.factorContributions || []).slice(0, 5).forEach((item) => {
     doc.setTextColor(100, 116, 139);
-    doc.text(item.category, margin + 3, y + 4);
+    doc.text(item.category || '', margin + 3, y + 4);
     doc.setTextColor(30, 41, 59);
-    doc.text(item.factor, margin + 35, y + 4);
+    doc.text(item.factor || '', margin + 35, y + 4);
     
     if (item.impact === 'positive') {
       doc.setTextColor(21, 154, 140);
@@ -219,7 +218,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
     }
 
     doc.setTextColor(51, 65, 85);
-    const splitDesc = doc.splitTextToSize(item.description, 60);
+    const splitDesc = doc.splitTextToSize(item.description || '', 60);
     doc.text(splitDesc[0] || '', margin + 115, y + 4);
 
     doc.setDrawColor(240, 243, 248);
@@ -239,7 +238,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   y += 5;
 
   doc.setFontSize(8);
-  if (assessment.negativeIndicators.length > 0) {
+  if (assessment.negativeIndicators && assessment.negativeIndicators.length > 0) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(185, 28, 28);
     doc.text('Warning & Risk Flags:', margin, y);
@@ -252,7 +251,7 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
     });
   }
 
-  if (assessment.positiveIndicators.length > 0) {
+  if (assessment.positiveIndicators && assessment.positiveIndicators.length > 0) {
     y += 1;
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(15, 118, 110);
@@ -281,12 +280,12 @@ export function generateRiskReportPDF(customer: Customer, assessment: ComputedRi
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 41, 59);
 
-  assessment.recommendedActions.forEach((action, idx) => {
+  (assessment.recommendedActions || []).forEach((action, idx) => {
     doc.text(`${idx + 1}. ${action}`, margin + 3, y);
     y += 4.5;
   });
 
-  // Footer Disclaimer Banner (Required by prompt)
+  // Footer Disclaimer Banner
   const footerY = 270;
   doc.setDrawColor(203, 213, 225);
   doc.line(margin, footerY, margin + contentWidth, footerY);

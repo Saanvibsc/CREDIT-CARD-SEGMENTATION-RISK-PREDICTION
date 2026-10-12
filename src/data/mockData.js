@@ -1,10 +1,9 @@
-import { Customer, EarlyWarningAlert, CustomerSegment, TestPredictionItem, ValidationModelComparisonItem, ModelPipelineSpec } from '../types';
 
 /**
  * Realistic Credit Card Portfolio Dataset
  * Replaces previous 25 mock profiles with the realistic combined_credit_risk_realistic_with_ids dataset
  */
-export const INITIAL_CUSTOMERS: Customer[] = [
+export const INITIAL_CUSTOMERS = [
   {
     "id": "CUST000001",
     "fullName": "Isabella Sterling",
@@ -14407,7 +14406,7 @@ export const INITIAL_CUSTOMERS: Customer[] = [
   }
 ];
 
-export const INITIAL_ALERTS: EarlyWarningAlert[] = [
+export const INITIAL_ALERTS = [
   {
     "id": "EW-9001",
     "customerId": "CUST000006",
@@ -14782,21 +14781,7 @@ export const INITIAL_ALERTS: EarlyWarningAlert[] = [
   }
 ];
 
-export const SEGMENTS_DATA: {
-  segment: CustomerSegment;
-  name: string;
-  tagline: string;
-  description: string;
-  typicalFinancialBehavior: string;
-  count: number;
-  percentage: number;
-  avgUtilization: number;
-  avgBalance: number;
-  avgIncome: number;
-  avgCreditLimit: number;
-  defaultRate: number;
-  recommendedStrategy: string;
-}[] = [
+export const SEGMENTS_DATA = [
   {
     "segment": "Prime Transactors",
     "name": "Prime Transactors",
@@ -14874,7 +14859,7 @@ export const SEGMENTS_DATA: {
   }
 ];
 
-export const TEST_PREDICTIONS: TestPredictionItem[] = [
+export const TEST_PREDICTIONS = [
   {
     "customerId": "CUST000121",
     "fullName": "Zoe Villarreal",
@@ -16157,7 +16142,7 @@ export const TEST_PREDICTIONS: TestPredictionItem[] = [
   }
 ];
 
-export const VALIDATION_MODELS: ValidationModelComparisonItem[] = [
+export const VALIDATION_MODELS = [
   {
     "model_name": "CreditGuard Gradient Boosting (Production)",
     "model_type": "GradientBoostingClassifier (LightGBM/Sklearn)",
@@ -16256,7 +16241,7 @@ export const VALIDATION_MODELS: ValidationModelComparisonItem[] = [
   }
 ];
 
-export const MODEL_PIPELINE_SPEC: ModelPipelineSpec = {
+export const MODEL_PIPELINE_SPEC = {
   "model_name": "CreditGuard_Production_Pipeline",
   "version": "1.6.0",
   "algorithm": "GradientBoostingClassifier (LightGBM/Sklearn)",

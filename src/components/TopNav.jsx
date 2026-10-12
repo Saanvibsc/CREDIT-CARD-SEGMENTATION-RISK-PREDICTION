@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, X, ArrowRight, Cpu, Download } from 'lucide-react';
-import { NavPage } from './Sidebar';
-import { Customer } from '../types';
+import { Search, Bell, Menu, X, ArrowRight } from 'lucide-react';
 import { api } from '../services/api';
 
-interface TopNavProps {
-  currentPage: NavPage;
-  onNavigate: (page: NavPage) => void;
-  onSelectCustomer: (customerId: string) => void;
-  activeAlertCount: number;
-  onOpenModelHub?: () => void;
-}
-
-const NAV_ITEMS: { id: NavPage; label: string }[] = [
+const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'search', label: 'Search Customers' },
   { id: 'assessment', label: 'Risk Analysis' },
@@ -21,19 +11,16 @@ const NAV_ITEMS: { id: NavPage; label: string }[] = [
   { id: 'reports', label: 'Reports' },
 ];
 
-export const TopNav: React.FC<TopNavProps> = ({
+export const TopNav = ({
   currentPage,
   onNavigate,
   onSelectCustomer,
   activeAlertCount,
-  onOpenModelHub,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuickResults, setShowQuickResults] = useState(false);
-  const [searchResults, setSearchResults] = useState<Customer[]>([]);
+  const [searchResults, setSearchResults] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const apiConfig = api.getConfig();
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -50,7 +37,7 @@ export const TopNav: React.FC<TopNavProps> = ({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleSelect = (id: string) => {
+  const handleSelect = (id) => {
     onSelectCustomer(id);
     onNavigate('assessment');
     setSearchQuery('');
@@ -101,7 +88,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         </div>
       </div>
 
-      {/* Right: Search + Model & Data Hub + Mobile Toggle */}
+      {/* Right: Search + Mobile Toggle */}
       <div className="flex items-center gap-3 sm:gap-4">
         {/* Quick Search */}
         <div className="relative w-36 sm:w-52 hidden sm:block">
@@ -149,19 +136,6 @@ export const TopNav: React.FC<TopNavProps> = ({
           )}
         </div>
 
-        {/* Model & Dataset Hub Button */}
-        {onOpenModelHub && (
-          <button
-            onClick={onOpenModelHub}
-            className="px-3 py-1.5 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-[11px] uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Inspect trained model.pkl and download dataset CSVs"
-          >
-            <Cpu className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Model &amp; Data</span>
-            <span className="sm:hidden">Files</span>
-          </button>
-        )}
-
         {/* Mobile menu hamburger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -206,23 +180,9 @@ export const TopNav: React.FC<TopNavProps> = ({
                 )}
               </button>
             ))}
-
-            {onOpenModelHub && (
-              <button
-                onClick={() => {
-                  onOpenModelHub();
-                  setMobileMenuOpen(false);
-                }}
-                className="text-left text-xs uppercase tracking-wider py-2 px-1 font-semibold text-[#4338ca] flex items-center gap-2 border-t border-gray-200 mt-2 pt-2"
-              >
-                <Cpu className="w-3.5 h-3.5" />
-                <span>Model &amp; Datasets (model.pkl)</span>
-              </button>
-            )}
           </div>
         </div>
       )}
     </nav>
   );
 };
-
