@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { Customer, RiskConfig, EarlyWarningAlert, CustomerSegment } from '../types';
 import { api } from '../services/api';
-import { calculateRiskAssessment } from '../utils/scoringEngine';
+import { calculateRiskAssessment, getCalibratedScore10, getCalibratedCategory } from '../utils/scoringEngine';
 import { NavPage } from './Sidebar';
 
 interface CustomerWiseDashboardProps {
@@ -288,12 +288,12 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
             <button
               onClick={() => {
                 onSelectCustomer(activeCustomer.id);
-                onNavigate('assessment');
+                onNavigate('prediction');
               }}
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold border border-indigo-200 transition-colors cursor-pointer"
             >
               <Activity className="w-3.5 h-3.5" />
-              Full Risk Model
+              ML Prediction &amp; What-If
             </button>
 
             <button
@@ -372,13 +372,16 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
         {/* Card 1: Credit Line Utilization */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Revolver Utilization</span>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block">Card Limit Used</span>
+              <span className="text-[10px] text-slate-400">Credit utilization rate</span>
+            </div>
             <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
               isHighUtil ? 'bg-rose-100 text-rose-800 border border-rose-200' :
               isMedUtil ? 'bg-amber-100 text-amber-800 border border-amber-200' :
               'bg-emerald-100 text-emerald-800 border border-emerald-200'
             }`}>
-              {isHighUtil ? 'Critical' : isMedUtil ? 'Elevated' : 'Optimal'}
+              {isHighUtil ? 'High Usage (>75%)' : isMedUtil ? 'Moderate (30-75%)' : 'Optimal (<30%)'}
             </span>
           </div>
           <div>
@@ -397,7 +400,7 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Available Line:</span>
+            <span>Remaining Spending Room:</span>
             <span className="font-semibold text-slate-800">${Number(availableCredit || 0).toLocaleString()}</span>
           </div>
         </div>
@@ -405,7 +408,10 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
         {/* Card 2: Current Outstanding Balance */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Outstanding Balance</span>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block">Unpaid Card Balance</span>
+              <span className="text-[10px] text-slate-400">Total debt owed on card</span>
+            </div>
             <CreditCard className="w-4 h-4 text-slate-400" />
           </div>
           <div>
@@ -413,11 +419,11 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
               <span className="text-3xl font-black text-slate-900">${Number(activeCustomer.outstandingBalance || 0).toLocaleString()}</span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Card: <span className="font-semibold text-slate-700">{activeCustomer.cardType || 'Credit Card'}</span>
+              Card Product: <span className="font-semibold text-slate-700">{activeCustomer.cardType || 'Credit Card'}</span>
             </p>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Spend Velocity:</span>
+            <span>Monthly Spending Velocity:</span>
             <span className="font-semibold text-slate-800">${Number(activeCustomer.monthlyAverageSpend ?? (Number(activeCustomer.outstandingBalance || 0) * 0.35)).toLocaleString()} / mo</span>
           </div>
         </div>
@@ -425,7 +431,10 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
         {/* Card 3: Default Probability & Risk Rating */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Default Probability</span>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block">Risk of Missed Payment</span>
+              <span className="text-[10px] text-slate-400">90-day default likelihood</span>
+            </div>
             <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
               assessment.riskTier === 'High' ? 'bg-rose-100 text-rose-800' :
               assessment.riskTier === 'Medium' ? 'bg-amber-100 text-amber-800' :
@@ -437,15 +446,17 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
           <div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-black text-slate-900">{assessment.defaultProbability}%</span>
-              <span className="text-xs text-slate-400">Score: {assessment.riskScore}/100</span>
+              <span className="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">
+                Grade {getCalibratedScore10(assessment.riskScore)}/10
+              </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Segment: <span className="font-semibold text-slate-700">{activeCustomer.segment}</span>
+              Safety Score: <span className="font-semibold text-slate-700">{assessment.riskScore}/100</span> (1-4 Safe · 8-10 Danger)
             </p>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Delinquency 6M:</span>
-            <span className={`font-semibold ${Number(activeCustomer.delayedPayments6M || 0) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+            <span>Past 6 Months Late:</span>
+            <span className={`font-semibold ${Number(activeCustomer.delayedPayments6M || 0) > 0 ? 'text-rose-600 font-bold' : 'text-emerald-600'}`}>
               {activeCustomer.delayedPayments6M ?? 0} late cycles
             </span>
           </div>
@@ -454,20 +465,23 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
         {/* Card 4: Repayment Discipline */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Payment-To-Min Ratio</span>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block">Payment Strength</span>
+              <span className="text-[10px] text-slate-400">Times minimum required payment</span>
+            </div>
             <DollarSign className="w-4 h-4 text-slate-400" />
           </div>
           <div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-black text-slate-900">{activeCustomer.paymentToMinRatio ?? 1}x</span>
-              <span className="text-xs text-slate-400">vs Min Due</span>
+              <span className="text-xs text-slate-400">of Minimum Bill</span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Cash Advance 6M: <span className="font-semibold text-slate-700">{activeCustomer.cashAdvanceCount6M ?? 0} draws</span>
+              Emergency Cash Draws: <span className="font-semibold text-slate-700">{activeCustomer.cashAdvanceCount6M ?? 0} in 6M</span>
             </p>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Annual Income:</span>
+            <span>Declared Annual Income:</span>
             <span className="font-semibold text-slate-800">${Number(activeCustomer.annualIncome || 0).toLocaleString()}</span>
           </div>
         </div>

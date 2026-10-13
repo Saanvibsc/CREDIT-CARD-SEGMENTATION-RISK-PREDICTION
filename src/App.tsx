@@ -9,15 +9,13 @@ import { DEFAULT_RISK_CONFIG } from './utils/scoringEngine';
 import { api } from './services/api';
 import { TopNav } from './components/TopNav';
 import { NavPage } from './components/Sidebar';
-import { Dashboard } from './components/Dashboard';
 import { CustomerWiseDashboard } from './components/CustomerWiseDashboard';
 import { SegmentWiseDashboard } from './components/SegmentWiseDashboard';
 import { CustomerSearch } from './components/CustomerSearch';
-import { RiskAssessment } from './components/RiskAssessment';
 import { EarlyWarningAlerts } from './components/EarlyWarningAlerts';
-import { CustomerSegmentation } from './components/CustomerSegmentation';
 import { RiskReports } from './components/RiskReports';
-import { UploadReport } from './components/UploadReport';
+import { PredictionView } from './components/PredictionView';
+import { ExplanationGuide } from './components/ExplanationGuide';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavPage>('customer-dashboard');
@@ -94,27 +92,47 @@ export default function App() {
           />
         )}
 
-        {currentPage === 'dashboard' && (
-          <Dashboard
-            config={config}
+        {currentPage === 'prediction' && (
+          <PredictionView
             selectedCustomerId={selectedCustomerId}
+            customers={customers}
+            config={config}
+            onSelectCustomer={(id: string) => setSelectedCustomerId(id)}
+            onNavigate={(page: NavPage) => setCurrentPage(page)}
+          />
+        )}
+
+        {currentPage === 'explanation' && (
+          <ExplanationGuide
+            customers={customers}
+            config={config}
+            onSelectCustomer={(id: string) => setSelectedCustomerId(id)}
+            onNavigate={(page: NavPage) => setCurrentPage(page)}
+          />
+        )}
+
+        {/* Alias routes for backward compatibility */}
+        {currentPage === 'dashboard' && (
+          <CustomerWiseDashboard
+            selectedCustomerId={selectedCustomerId}
+            config={config}
             onNavigate={(page) => setCurrentPage(page)}
             onSelectCustomer={(id) => setSelectedCustomerId(id)}
+          />
+        )}
+
+        {currentPage === 'assessment' && (
+          <PredictionView
+            selectedCustomerId={selectedCustomerId}
+            customers={customers}
+            config={config}
+            onSelectCustomer={(id: string) => setSelectedCustomerId(id)}
+            onNavigate={(page: NavPage) => setCurrentPage(page)}
           />
         )}
 
         {currentPage === 'search' && (
           <CustomerSearch
-            config={config}
-            onSelectCustomer={(id) => setSelectedCustomerId(id)}
-            onNavigate={(page) => setCurrentPage(page)}
-          />
-        )}
-
-        {currentPage === 'assessment' && (
-          <RiskAssessment
-            customer={activeCustomer}
-            allCustomers={customers}
             config={config}
             onSelectCustomer={(id) => setSelectedCustomerId(id)}
             onNavigate={(page) => setCurrentPage(page)}
@@ -140,17 +158,16 @@ export default function App() {
           />
         )}
 
-        {currentPage === 'reports' && (
+        {(currentPage === 'reports' || currentPage === 'upload-report') && (
           <RiskReports
             selectedCustomerId={selectedCustomerId}
             customers={customers}
             config={config}
             onSelectCustomer={(id) => setSelectedCustomerId(id)}
             onNavigate={(page) => setCurrentPage(page)}
+            initialMode={currentPage === 'upload-report' ? 'verify' : 'generate'}
           />
         )}
-
-        {currentPage === 'upload-report' && <UploadReport config={config} />}
       </main>
     </div>
   );

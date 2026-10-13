@@ -1,4 +1,3 @@
- HEAD
 # CreditGuard AI — Full-stack prototype
 
 The React/Vite dashboard is bundled and served by the Flask application. Flask loads the saved Scikit-learn model and CSV, provides customer/portfolio/risk/alert/segmentation APIs, and retains the original server-rendered page at `/legacy`.
@@ -59,7 +58,7 @@ Customer search returns up to 500 matches by default (maximum 5,000); segmentati
 - This educational prototype does not persist alert statuses or include the saved model's feature-attribution artifact.
 - Personal names, card products, joined dates, and bureau inquiry counts not present in the CSV are displayed as unavailable, not inferred.
 - This is not a production banking or automated lending system.
-=======
+---
 # CREDIT-CARD-SEGMENTATION-RISK-PREDICTION
 Credit card customer analytics project combining customer segmentation, default risk prediction, explainable AI, and early-warning risk scoring.
 # Intelligent Credit Card Customer Analytics
@@ -185,4 +184,3 @@ This project was developed as a collaborative Business Analytics project, with s
 ## Objective
 
 The overall objective is to create an interpretable and actionable credit risk analytics system that can help identify customer segments, detect potential default risk early, and support data-driven decision-making.
-origin/main

@@ -12,7 +12,8 @@ import {
   ChevronRight, 
   X,
   PieChart,
-  Cpu
+  Cpu,
+  BookOpen
 } from 'lucide-react';
 import { NavPage } from '../types';
 
@@ -28,13 +29,12 @@ export interface SidebarProps {
 
 const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'customer-dashboard', label: 'Customer Dashboard', icon: User },
-  { id: 'segment-dashboard', label: 'Segment Dashboard', icon: PieChart },
-  { id: 'prediction', label: 'Prediction', icon: Cpu },
-  { id: 'search', label: 'Search Customers', icon: Search },
-  { id: 'assessment', label: 'Risk Analysis', icon: ShieldAlert },
-  { id: 'alerts', label: 'Early-Warning Alerts', icon: BellRing },
-  { id: 'reports', label: 'Risk Reports', icon: FileText },
-  { id: 'upload-report', label: 'Upload Report', icon: Upload },
+  { id: 'segment-dashboard', label: 'Segment & Matrix', icon: PieChart },
+  { id: 'prediction', label: 'ML Prediction & Benchmarks', icon: Cpu },
+  { id: 'alerts', label: 'Surveillance Alerts', icon: BellRing },
+  { id: 'reports', label: 'Audit & Reports', icon: FileText },
+  { id: 'search', label: 'Customer Directory', icon: Search },
+  { id: 'explanation', label: 'Explanation & Guide', icon: BookOpen },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({

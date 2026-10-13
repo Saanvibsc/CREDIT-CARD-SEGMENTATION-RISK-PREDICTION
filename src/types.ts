@@ -6,16 +6,42 @@
 export type NavPage =
   | 'customer-dashboard'
   | 'segment-dashboard'
-  | 'dashboard'
   | 'prediction'
-  | 'search'
-  | 'assessment'
+  | 'explanation'
   | 'alerts'
-  | 'segmentation'
   | 'reports'
-  | 'upload-report';
+  | 'search'
+  // Legacy aliases supported for routing
+  | 'assessment'
+  | 'upload-report'
+  | 'dashboard'
+  | 'segmentation';
 
 export type RiskTier = 'Low' | 'Medium' | 'High';
+
+export interface ModelBenchmark {
+  model_name: string;
+  model_type: string;
+  roc_auc: number;
+  roc_auc_std?: number;
+  gini_coefficient: number;
+  ks_statistic_pct: number;
+  brier_score: number;
+  precision: number;
+  recall: number;
+  f1_score: number;
+  accuracy_pct: number;
+  status: string;
+  description: string;
+}
+
+export interface CalibratedRiskGrade {
+  score10: number;
+  category: string;
+  tier: RiskTier;
+  colorClass: string;
+  badgeClass: string;
+}
 
 export type AlertSeverity = 'Low' | 'Medium' | 'High' | 'Critical';
 export type AlertStatus = 'New' | 'Under Review' | 'Resolved';
@@ -61,6 +87,10 @@ export interface Customer {
   segment: CustomerSegment;
   joinedDate: string;
   lastAssessmentDate: string;
+  clusterId?: number;
+  actualDefault?: number;
+  utilization_rate?: number;
+  debt_to_income_est?: number;
 }
 
 export interface RiskConfig {

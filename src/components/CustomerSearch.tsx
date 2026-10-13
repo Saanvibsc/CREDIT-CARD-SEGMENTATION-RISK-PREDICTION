@@ -363,16 +363,26 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
             </div>
 
             {/* Actions */}
-            <div className="pt-2 flex items-center gap-3">
+            <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
               <button
                 onClick={() => {
                   onSelectCustomer(activeCustomer.id);
-                  onNavigate('assessment');
+                  onNavigate('customer-dashboard');
                 }}
-                className="flex-1 py-2.5 px-4 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:flex-1 py-2.5 px-3 bg-[#1a1a1a] hover:bg-[#4338ca] text-white mono text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>Risk Breakdown</span>
+                <span>Cardholder Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => {
+                  onSelectCustomer(activeCustomer.id);
+                  onNavigate('prediction');
+                }}
+                className="w-full sm:flex-1 py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 mono text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>ML Prediction</span>
               </button>
 
               <button
@@ -380,9 +390,9 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
                   onSelectCustomer(activeCustomer.id);
                   onNavigate('reports');
                 }}
-                className="py-2.5 px-4 border border-[#1a1a1a] hover:border-[#4338ca] hover:text-[#4338ca] text-[#1a1a1a] mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                className="w-full sm:w-auto py-2.5 px-3 border border-gray-300 hover:border-gray-900 text-gray-700 mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
               >
-                View Report
+                Report
               </button>
             </div>
           </div>

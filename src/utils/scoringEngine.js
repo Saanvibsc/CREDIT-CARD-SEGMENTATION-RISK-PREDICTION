@@ -255,5 +255,75 @@ export function calculateRiskAssessment(
     recommendedActions,
     assessedAt: customer.lastAssessmentDate,
     confidenceScore: 94.2,
+    calibratedScore10: getCalibratedScore10(clampedRiskScore),
+    calibratedCategory: getCalibratedCategory(getCalibratedScore10(clampedRiskScore)),
   };
 }
+
+/**
+ * Maps risk score (0-100) or default probability into calibrated 1-10 integer score.
+ */
+export function getCalibratedScore10(scoreOrPd) {
+  const val = Number(scoreOrPd) || 0;
+  if (val <= 10) return 1;
+  if (val <= 20) return 2;
+  if (val <= 30) return 3;
+  if (val <= 40) return 4;
+  if (val <= 50) return 5;
+  if (val <= 60) return 6;
+  if (val <= 70) return 7;
+  if (val <= 80) return 8;
+  if (val <= 90) return 9;
+  return 10;
+}
+
+/**
+ * Returns descriptive Basel II calibrated risk category for a 1-10 risk score.
+ */
+export function getCalibratedCategory(score10) {
+  const s = Math.max(1, Math.min(10, Math.round(Number(score10) || 1)));
+  if (s <= 2) {
+    return {
+      label: 'Minimal Risk',
+      tier: 'Low',
+      range: '1–2',
+      badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      description: 'Prime cardholder with negligible delinquency hazard and high liquidity buffer.'
+    };
+  }
+  if (s <= 4) {
+    return {
+      label: 'Low Risk',
+      tier: 'Low',
+      range: '3–4',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      description: 'Standard solvent borrower with consistent on-time payment track record.'
+    };
+  }
+  if (s <= 6) {
+    return {
+      label: 'Moderate Risk',
+      tier: 'Medium',
+      range: '5–6',
+      badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
+      description: 'Revolving cardholder with moderate balance pressure or single payment postponement.'
+    };
+  }
+  if (s <= 8) {
+    return {
+      label: 'Elevated Risk',
+      tier: 'Medium',
+      range: '7–8',
+      badgeClass: 'bg-amber-200 text-amber-900 border-amber-400',
+      description: 'Persistent revolver with high credit limit exhaustion requiring active watchlist review.'
+    };
+  }
+  return {
+    label: 'Severe Risk',
+    tier: 'High',
+    range: '9–10',
+    badgeClass: 'bg-rose-100 text-rose-800 border-rose-300',
+    description: 'Impaired credit profile with multi-cycle delinquency; imminent charge-off vulnerability.'
+  };
+}
+

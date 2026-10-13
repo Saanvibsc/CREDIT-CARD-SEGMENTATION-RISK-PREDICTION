@@ -53,12 +53,13 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [hoveredCustomer, setHoveredCustomer] = useState<Customer | null>(null);
   const [selectedDotCustomer, setSelectedDotCustomer] = useState<Customer | null>(null);
-  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const [showValueLabels, setShowValueLabels] = useState<boolean>(false);
 
   // Policy Simulator States
   const [limitAdjustmentPct, setLimitAdjustmentPct] = useState<number>(0);
   const [minPaymentPct, setMinPaymentPct] = useState<number>(2.5);
   const [restrictCashAdvance, setRestrictCashAdvance] = useState<boolean>(false);
+  const [matrixRiskFilter, setMatrixRiskFilter] = useState<'All' | 'Low' | 'Medium' | 'High'>('All');
 
   // AI Segment Strategist States
   const [aiLoading, setAiLoading] = useState<boolean>(false);
@@ -100,11 +101,65 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
     ];
   }, [customers]);
 
-  // Filtered customers for active segment
+  // Filtered customers for active segment and risk filter
   const activeCustomers = useMemo(() => {
-    if (selectedSegment === 'All') return customers;
-    return customers.filter((c) => c.segment === selectedSegment);
-  }, [customers, selectedSegment]);
+    let list = selectedSegment === 'All' ? customers : customers.filter((c) => c.segment === selectedSegment);
+    if (matrixRiskFilter !== 'All') {
+      list = list.filter((c) => {
+        const assessment = calculateRiskAssessment(c, config);
+        return assessment.riskTier === matrixRiskFilter;
+      });
+    }
+    return list;
+  }, [customers, selectedSegment, matrixRiskFilter, config]);
+
+  // Combined Segment x Risk Cross-Analysis Matrix
+  const segmentRiskCrossMatrix = useMemo(() => {
+    return uniqueSegments.map((seg) => {
+      const segCusts = customers.filter((c) => c.segment === seg);
+      const total = segCusts.length;
+
+      const scored = segCusts.map((c) => ({
+        customer: c,
+        assessment: calculateRiskAssessment(c, config),
+      }));
+
+      const low = scored.filter((s) => s.assessment.riskTier === 'Low');
+      const med = scored.filter((s) => s.assessment.riskTier === 'Medium');
+      const high = scored.filter((s) => s.assessment.riskTier === 'High');
+
+      const lowExposure = low.reduce((sum, s) => sum + (s.customer.outstandingBalance || 0), 0);
+      const medExposure = med.reduce((sum, s) => sum + (s.customer.outstandingBalance || 0), 0);
+      const highExposure = high.reduce((sum, s) => sum + (s.customer.outstandingBalance || 0), 0);
+      const totalExposure = lowExposure + medExposure + highExposure;
+
+      const avgPd = total > 0
+        ? scored.reduce((sum, s) => sum + s.assessment.defaultProbability, 0) / total
+        : 0;
+
+      return {
+        segment: seg,
+        total,
+        totalExposure,
+        avgPd,
+        low: {
+          count: low.length,
+          pct: total > 0 ? (low.length / total) * 100 : 0,
+          exposure: lowExposure,
+        },
+        med: {
+          count: med.length,
+          pct: total > 0 ? (med.length / total) * 100 : 0,
+          exposure: medExposure,
+        },
+        high: {
+          count: high.length,
+          pct: total > 0 ? (high.length / total) * 100 : 0,
+          exposure: highExposure,
+        },
+      };
+    });
+  }, [customers, uniqueSegments, config]);
 
   // Aggregate metrics for active segment
   const segmentStats = useMemo(() => {
@@ -413,28 +468,44 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
-            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
-              Credit Card Data Segmentation: Utilization vs. Outstanding Balance
-            </h2>
-            <p className="text-xs text-slate-500">
-              Interactive 2D Cluster Matrix · Click any dot to inspect cardholder profile or navigate to their Customer Dashboard
+              <h2 className="text-lg font-black text-slate-900">
+                Customer Scatter Map: Card Usage vs. Total Balance
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Every dot is a cardholder. Left-to-right shows percentage of credit limit used (0% to 100%). Bottom-to-top shows current unpaid balance ($0 to $25k).
             </p>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-500">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Prime
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Revolver
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Leverage
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Watchlist
-            </span>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Show Value Labels Toggle */}
+            <button
+              onClick={() => setShowValueLabels(!showValueLabels)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer flex items-center gap-1.5 ${
+                showValueLabels
+                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <span>{showValueLabels ? '✓ Showing Value Tags' : '+ Show Value Tags'}</span>
+            </button>
+
+            <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" /> Prime
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-blue-500" /> Revolver
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-amber-500" /> High Debt
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-rose-500" /> Danger
+              </span>
+            </div>
           </div>
         </div>
 
@@ -444,7 +515,7 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-slate-900 text-sm">{selectedDotCustomer.fullName}</span>
-                <span className="font-mono text-xs text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">
+                <span className="font-mono text-xs text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded font-bold">
                   {selectedDotCustomer.id}
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-white border border-indigo-200 text-slate-700 font-semibold">
@@ -454,8 +525,9 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
               <p className="text-xs text-slate-600 mt-1">
                 Balance: <span className="font-bold text-slate-900">${Number(selectedDotCustomer?.outstandingBalance || 0).toLocaleString()}</span> ·
                 Utilization: <span className="font-bold text-slate-900">{(Number(selectedDotCustomer?.creditUtilization) || 0).toFixed(1)}%</span> ·
+                Credit Limit: <span className="font-semibold text-slate-800">${Number(selectedDotCustomer?.creditLimit || 0).toLocaleString()}</span> ·
                 Segment: <span className="font-semibold text-indigo-900">{selectedDotCustomer?.segment || 'Standard'}</span> ·
-                Delinquency 6M: <span className="font-semibold text-slate-800">{selectedDotCustomer?.delayedPayments6M ?? 0} late</span>
+                Delinquency 6M: <span className="font-semibold text-slate-800">{selectedDotCustomer?.delayedPayments6M ?? 0} late cycles</span>
               </p>
             </div>
 
@@ -480,102 +552,520 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
         )}
 
         {/* The SVG Scatter Plot Container */}
-        <div className="relative w-full h-[460px] bg-slate-50/70 border border-slate-200 rounded-xl overflow-hidden p-4">
-          {/* Quadrant Background Watermarks */}
-          <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none p-6">
+        <div className="relative w-full h-[480px] bg-white border border-slate-200 rounded-xl overflow-hidden p-2 select-none">
+          {/* Quadrant Background Watermarks (Positioned inside the chart boundaries: Left 8% to 92%, Top 8% to 86%) */}
+          <div className="absolute left-[8%] right-[8%] top-[8%] bottom-[14%] grid grid-cols-2 grid-rows-2 pointer-events-none">
             {/* Top-Left Quadrant */}
-            <div className="border-r border-b border-dashed border-slate-300 p-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-800/60 bg-indigo-100/50 px-2 py-1 rounded">
-                Quadrant II: Affluent High Balance Revolvers
+            <div className="border-r border-b border-dashed border-slate-200/80 p-3 bg-indigo-50/20">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700/80 bg-indigo-100/70 px-2 py-0.5 rounded">
+                Quadrant II: High-Income Borrowers (High Debt, Low % Used)
               </span>
             </div>
             {/* Top-Right Quadrant */}
-            <div className="border-b border-dashed border-slate-300 p-3 text-right">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800/70 bg-rose-100/60 px-2 py-1 rounded">
-                Quadrant I: Critical Exposure Danger Zone (Maxed Out)
+            <div className="border-b border-dashed border-slate-200/80 p-3 text-right bg-rose-50/20">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700/80 bg-rose-100/70 px-2 py-0.5 rounded">
+                Quadrant I: Critical Danger Zone (Maxed Out &amp; High Debt)
               </span>
             </div>
             {/* Bottom-Left Quadrant */}
-            <div className="border-r border-dashed border-slate-300 p-3 flex items-end">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800/60 bg-emerald-100/50 px-2 py-1 rounded">
-                Quadrant III: Conservative Prime Transactors (Safe Haven)
+            <div className="border-r border-dashed border-slate-200/80 p-3 flex items-end bg-emerald-50/20">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700/80 bg-emerald-100/70 px-2 py-0.5 rounded">
+                Quadrant III: Safe Prime Spenders (Low Debt, Low Card Usage)
               </span>
             </div>
             {/* Bottom-Right Quadrant */}
-            <div className="p-3 flex items-end justify-end">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800/70 bg-amber-100/60 px-2 py-1 rounded">
-                Quadrant IV: Overextended Subprime / Micro-Revolvers
+            <div className="p-3 flex items-end justify-end bg-amber-50/20">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700/80 bg-amber-100/70 px-2 py-0.5 rounded">
+                Quadrant IV: Overextended Low-Limit (High % Used, Low Limit)
               </span>
             </div>
           </div>
 
-          {/* SVG Canvas */}
+          {/* Glitch-Free SVG Canvas with Fixed Coordinate ViewBox and Native Percentages */}
           <svg className="w-full h-full relative z-10 overflow-visible">
-            {/* Axis Labels */}
-            <text x="50%" y="98%" textAnchor="middle" className="text-[11px] font-bold fill-slate-500 tracking-wide uppercase">
-              Credit Card Utilization Percentage (%) →
-            </text>
-            <text x="18" y="24" className="text-[11px] font-bold fill-slate-500 tracking-wide uppercase">
-              ↑ Revolving Balance ($)
+            {/* HORIZONTAL GRID LINES & Y-AXIS LABELS */}
+            {[
+              { val: 25000, label: '$25,000', yPct: 8 },
+              { val: 20000, label: '$20,000', yPct: 23.6 },
+              { val: 15000, label: '$15,000', yPct: 39.2 },
+              { val: 10000, label: '$10,000', yPct: 54.8 },
+              { val: 5000,  label: '$5,000',  yPct: 70.4 },
+              { val: 0,     label: '$0',      yPct: 86 }
+            ].map((tick) => (
+              <g key={`y-${tick.val}`}>
+                <line
+                  x1="8%"
+                  y1={`${tick.yPct}%`}
+                  x2="92%"
+                  y2={`${tick.yPct}%`}
+                  stroke="#f1f5f9"
+                  strokeWidth="1"
+                />
+                <text
+                  x="7.2%"
+                  y={`${tick.yPct}%`}
+                  textAnchor="end"
+                  dominantBaseline="middle"
+                  className="text-[10px] font-mono font-medium fill-slate-400"
+                >
+                  {tick.label}
+                </text>
+              </g>
+            ))}
+
+            {/* VERTICAL GRID LINES & X-AXIS LABELS */}
+            {[
+              { val: 0,   label: '0%',   xPct: 8 },
+              { val: 20,  label: '20%',  xPct: 24.8 },
+              { val: 40,  label: '40%',  xPct: 41.6 },
+              { val: 60,  label: '60%',  xPct: 58.4 },
+              { val: 80,  label: '80%',  xPct: 75.2 },
+              { val: 100, label: '100%', xPct: 92 }
+            ].map((tick) => (
+              <g key={`x-${tick.val}`}>
+                <line
+                  x1={`${tick.xPct}%`}
+                  y1="8%"
+                  x2={`${tick.xPct}%`}
+                  y2="86%"
+                  stroke="#f1f5f9"
+                  strokeWidth="1"
+                />
+                <text
+                  x={`${tick.xPct}%`}
+                  y="90.5%"
+                  textAnchor="middle"
+                  className="text-[10px] font-mono font-medium fill-slate-400"
+                >
+                  {tick.label}
+                </text>
+              </g>
+            ))}
+
+            {/* 30% Utilization Prime Ceiling Guide */}
+            <line
+              x1={`${8 + (30 / 100) * 84}%`}
+              y1="8%"
+              x2={`${8 + (30 / 100) * 84}%`}
+              y2="86%"
+              stroke="#10b981"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+              opacity="0.6"
+            />
+            <text
+              x={`${8 + (30 / 100) * 84}%`}
+              y="6%"
+              textAnchor="middle"
+              className="text-[9px] font-bold fill-emerald-600 uppercase tracking-wider"
+            >
+              30% Prime Limit
             </text>
 
-            {/* Render Scatter Dots */}
+            {/* 75% Critical Threshold Line */}
+            <line
+              x1={`${8 + (75 / 100) * 84}%`}
+              y1="8%"
+              x2={`${8 + (75 / 100) * 84}%`}
+              y2="86%"
+              stroke="#ef4444"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+              opacity="0.6"
+            />
+            <text
+              x={`${8 + (75 / 100) * 84}%`}
+              y="6%"
+              textAnchor="middle"
+              className="text-[9px] font-bold fill-rose-600 uppercase tracking-wider"
+            >
+              75% Danger Line
+            </text>
+
+            {/* Chart Outer Axes */}
+            <line x1="8%" y1="86%" x2="92%" y2="86%" stroke="#cbd5e1" strokeWidth="1.5" />
+            <line x1="8%" y1="8%" x2="8%" y2="86%" stroke="#cbd5e1" strokeWidth="1.5" />
+
+            {/* Axis Titles */}
+            <text x="50%" y="97%" textAnchor="middle" className="text-[11px] font-bold fill-slate-600 tracking-wide uppercase">
+              Credit Card Utilization Rate (% of Card Limit) →
+            </text>
+            <text x="2%" y="4%" className="text-[11px] font-bold fill-slate-600 tracking-wide uppercase">
+              ↑ Current Unpaid Balance ($)
+            </text>
+
+            {/* DYNAMIC CROSSHAIR LINES FOR HOVERED OR SELECTED CUSTOMER */}
+            {hoveredCustomer && (() => {
+              const hx = 8 + (Math.min(100, Math.max(0, hoveredCustomer.creditUtilization)) / 100) * 84;
+              const hy = 86 - (Math.min(25000, Math.max(0, hoveredCustomer.outstandingBalance)) / 25000) * 78;
+              return (
+                <g pointerEvents="none">
+                  {/* Vertical line to X-axis */}
+                  <line
+                    x1={`${hx}%`}
+                    y1={`${hy}%`}
+                    x2={`${hx}%`}
+                    y2="86%"
+                    stroke="#4338ca"
+                    strokeWidth="1.5"
+                    strokeDasharray="3 3"
+                  />
+                  {/* Horizontal line to Y-axis */}
+                  <line
+                    x1="8%"
+                    y1={`${hy}%`}
+                    x2={`${hx}%`}
+                    y2={`${hy}%`}
+                    stroke="#4338ca"
+                    strokeWidth="1.5"
+                    strokeDasharray="3 3"
+                  />
+                  {/* Highlight Pill on X Axis */}
+                  <rect
+                    x={`${hx - 3.5}%`}
+                    y="87%"
+                    width="7%"
+                    height="16"
+                    rx="4"
+                    fill="#4338ca"
+                  />
+                  <text
+                    x={`${hx}%`}
+                    y="90.5%"
+                    textAnchor="middle"
+                    className="text-[10px] font-bold fill-white font-mono"
+                  >
+                    {hoveredCustomer.creditUtilization.toFixed(1)}%
+                  </text>
+                  {/* Highlight Pill on Y Axis */}
+                  <rect
+                    x="0.5%"
+                    y={`${hy - 2}%`}
+                    width="7.2%"
+                    height="16"
+                    rx="4"
+                    fill="#4338ca"
+                  />
+                  <text
+                    x="4.1%"
+                    y={`${hy}%`}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="text-[9px] font-bold fill-white font-mono"
+                  >
+                    ${Number(hoveredCustomer.outstandingBalance).toLocaleString()}
+                  </text>
+                </g>
+              );
+            })()}
+
+            {/* RENDER SCATTER DOTS: Separate hit target from visual dot to guarantee zero flickering! */}
             {activeCustomers.map((c) => {
-              const cxPct = Math.min(95, Math.max(5, (c.creditUtilization / maxUtil) * 90 + 5));
-              const cyPct = Math.min(90, Math.max(10, 95 - (c.outstandingBalance / maxBalance) * 85));
+              const cxPct = 8 + (Math.min(100, Math.max(0, c.creditUtilization)) / 100) * 84;
+              const cyPct = 86 - (Math.min(25000, Math.max(0, c.outstandingBalance)) / 25000) * 78;
               const colorInfo = SEGMENT_COLORS[c.segment] || DEFAULT_SEGMENT_COLOR;
               const isSelected = selectedDotCustomer?.id === c.id;
+              const isHovered = hoveredCustomer?.id === c.id;
 
               return (
-                <g key={c.id} className="cursor-pointer group">
+                <g key={c.id}>
+                  {/* Focus outer ring on hover/selected */}
+                  {(isSelected || isHovered) && (
+                    <circle
+                      cx={`${cxPct}%`}
+                      cy={`${cyPct}%`}
+                      r={13}
+                      fill="none"
+                      stroke={colorInfo.dot}
+                      strokeWidth={2}
+                      strokeDasharray="2 2"
+                      pointerEvents="none"
+                    />
+                  )}
+
+                  {/* Visual Circle (no CSS scale transforms = zero jitter) */}
                   <circle
                     cx={`${cxPct}%`}
                     cy={`${cyPct}%`}
-                    r={isSelected ? 9 : 6}
+                    r={isSelected ? 8.5 : isHovered ? 7.5 : 5.5}
                     fill={colorInfo.dot}
-                    fillOpacity={isSelected ? 1 : 0.82}
-                    stroke={isSelected ? '#1e1b4b' : '#ffffff'}
-                    strokeWidth={isSelected ? 3 : 1.5}
-                    className="transition-all duration-200 hover:scale-150 hover:opacity-100"
-                    onClick={() => {
-                      setSelectedDotCustomer(c);
+                    fillOpacity={isSelected || isHovered ? 1 : 0.82}
+                    stroke={isSelected ? '#0f172a' : isHovered ? '#1e1b4b' : '#ffffff'}
+                    strokeWidth={isSelected ? 2.5 : isHovered ? 2 : 1.2}
+                    pointerEvents="none"
+                  />
+
+                  {/* Optional Permanent Value Tag if enabled */}
+                  {showValueLabels && (
+                    <text
+                      x={`${cxPct + 1.2}%`}
+                      y={`${cyPct - 1.2}%`}
+                      className="text-[9px] font-bold fill-slate-700 pointer-events-none select-none"
+                    >
+                      ${(c.outstandingBalance / 1000).toFixed(1)}k · {c.creditUtilization.toFixed(0)}%
+                    </text>
+                  )}
+
+                  {/* Transparent enlarged hit-target: handles all clicks and hover events seamlessly */}
+                  <circle
+                    cx={`${cxPct}%`}
+                    cy={`${cyPct}%`}
+                    r={14}
+                    fill="transparent"
+                    className="cursor-pointer"
+                    onClick={() => setSelectedDotCustomer(c)}
+                    onMouseEnter={() => setHoveredCustomer(c)}
+                    onMouseLeave={() => {
+                      if (hoveredCustomer?.id === c.id) {
+                        setHoveredCustomer(null);
+                      }
                     }}
-                    onMouseEnter={(e) => {
-                      setHoveredCustomer(c);
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      setTooltipPos({ x: rect.left, y: rect.top });
-                    }}
-                    onMouseLeave={() => setHoveredCustomer(null)}
                   />
                 </g>
               );
             })}
           </svg>
 
-          {/* Hover Tooltip */}
-          {hoveredCustomer && tooltipPos && (
-            <div
-              className="fixed z-50 pointer-events-none -translate-x-1/2 -translate-y-full mb-3 bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs space-y-1 border border-slate-700 min-w-[200px]"
-              style={{ left: tooltipPos.x, top: tooltipPos.y }}
-            >
-              <div className="font-bold flex items-center justify-between">
-                <span>{hoveredCustomer.fullName}</span>
-                <span className="font-mono text-[10px] text-indigo-300">{hoveredCustomer.id}</span>
+          {/* GLITCH-FREE POPUP TOOLTIP: Anchored directly to dot percentages inside container with pointer-events-none */}
+          {hoveredCustomer && (() => {
+            const tipX = 8 + (Math.min(100, Math.max(0, hoveredCustomer.creditUtilization)) / 100) * 84;
+            const tipY = 86 - (Math.min(25000, Math.max(0, hoveredCustomer.outstandingBalance)) / 25000) * 78;
+            const isTop = tipY < 38;
+            const isFarRight = tipX > 72;
+            const isFarLeft = tipX < 28;
+
+            return (
+              <div
+                className={`absolute z-30 pointer-events-none bg-slate-900/95 text-white p-3.5 rounded-xl shadow-2xl border border-slate-700 backdrop-blur-xs min-w-[230px] transition-opacity duration-150 ${
+                  isTop ? 'translate-y-4' : '-translate-y-[calc(100%+14px)]'
+                } ${
+                  isFarRight ? '-translate-x-[90%]' : isFarLeft ? '-translate-x-[10%]' : '-translate-x-1/2'
+                }`}
+                style={{ left: `${tipX}%`, top: `${tipY}%` }}
+              >
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                  <span className="font-bold text-white text-xs">{hoveredCustomer.fullName}</span>
+                  <span className="font-mono text-[10px] text-indigo-300 bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-800/50 font-bold">
+                    {hoveredCustomer.id}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Unpaid Balance</span>
+                    <span className="font-bold text-white font-mono text-xs">
+                      ${Number(hoveredCustomer.outstandingBalance || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Card Limit Used</span>
+                    <span className="font-bold text-white font-mono text-xs">
+                      {Number(hoveredCustomer.creditUtilization || 0).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Credit Limit</span>
+                    <span className="font-semibold text-slate-300 font-mono">
+                      ${Number(hoveredCustomer.creditLimit || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Late in 6 Mos</span>
+                    <span className={`font-semibold font-mono ${Number(hoveredCustomer.delayedPayments6M || 0) > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400'}`}>
+                      {hoveredCustomer.delayedPayments6M || 0} cycles
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-2.5 pt-2 border-t border-slate-800 flex items-center justify-between text-[10px]">
+                  <span className="text-indigo-300 font-semibold">{hoveredCustomer.segment}</span>
+                  <span className="text-slate-400">Click dot to pin</span>
+                </div>
               </div>
-              <div className="text-slate-300 text-[11px]">
-                Balance: <span className="font-semibold text-white">${Number(hoveredCustomer?.outstandingBalance || 0).toLocaleString()}</span>
-              </div>
-              <div className="text-slate-300 text-[11px]">
-                Utilization: <span className="font-semibold text-white">{(Number(hoveredCustomer?.creditUtilization) || 0).toFixed(1)}%</span>
-              </div>
-              <div className="text-slate-300 text-[11px]">
-                Segment: <span className="font-semibold text-indigo-300">{hoveredCustomer.segment}</span>
-              </div>
-              <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-800">
-                Click dot to inspect or open dashboard
-              </div>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* Combined Segment x Risk Cross-Analysis Matrix */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800">
+                Segment × Risk Analysis
+              </span>
+              <h3 className="text-base font-bold text-slate-900">
+                Segment × Default Risk Cross-Tabulation Matrix
+              </h3>
             </div>
-          )}
+            <p className="text-xs text-slate-500 mt-1">
+              Cross-tabulates K-Means customer segments against calibrated default risk tiers with revolving balance exposure ($).
+              Click any cell to filter the cardholder portfolio below.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {(selectedSegment !== 'All' || matrixRiskFilter !== 'All') && (
+              <button
+                onClick={() => {
+                  setSelectedSegment('All');
+                  setMatrixRiskFilter('All');
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Reset Filter ({selectedSegment !== 'All' ? selectedSegment : ''} {matrixRiskFilter !== 'All' ? `· ${matrixRiskFilter} Risk` : ''})
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Matrix Risk Concentration Callout */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+          <div>
+            <span className="text-slate-500 text-[11px] uppercase font-bold tracking-wider">Top Risk Concentration</span>
+            <div className="font-bold text-slate-900 mt-0.5">
+              {segmentRiskCrossMatrix.reduce((prev, curr) => (curr.high.exposure > prev.high.exposure ? curr : prev), segmentRiskCrossMatrix[0])?.segment}
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Concentrates ${segmentRiskCrossMatrix.reduce((max, s) => Math.max(max, s.high.exposure), 0).toLocaleString()} in high-risk revolving balance
+            </p>
+          </div>
+          <div>
+            <span className="text-slate-500 text-[11px] uppercase font-bold tracking-wider">Safest Cohort</span>
+            <div className="font-bold text-emerald-700 mt-0.5">
+              {segmentRiskCrossMatrix.reduce((prev, curr) => (curr.low.pct > prev.low.pct ? curr : prev), segmentRiskCrossMatrix[0])?.segment}
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Highest proportion of low-risk cardholders ({segmentRiskCrossMatrix.reduce((max, s) => Math.max(max, s.low.pct), 0).toFixed(1)}%)
+            </p>
+          </div>
+          <div>
+            <span className="text-slate-500 text-[11px] uppercase font-bold tracking-wider">Total Portfolio High Risk</span>
+            <div className="font-bold text-rose-600 mt-0.5">
+              ${segmentRiskCrossMatrix.reduce((sum, s) => sum + s.high.exposure, 0).toLocaleString()} Exposure
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Across {segmentRiskCrossMatrix.reduce((sum, s) => sum + s.high.count, 0)} delinquent/overextended accounts
+            </p>
+          </div>
+        </div>
+
+        {/* Interactive Cross-Tabulation Grid */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+            <thead>
+              <tr className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
+                <th className="py-3 px-4">Segment Cohort (K-Means)</th>
+                <th className="py-3 px-4 text-center bg-emerald-50/60 text-emerald-900 border-x border-slate-200">
+                  Low Risk Tier (Score ≤ 34)
+                </th>
+                <th className="py-3 px-4 text-center bg-amber-50/60 text-amber-900 border-r border-slate-200">
+                  Medium Risk Tier (Score 35–64)
+                </th>
+                <th className="py-3 px-4 text-center bg-rose-50/60 text-rose-900 border-r border-slate-200">
+                  High Risk Tier (Score ≥ 65)
+                </th>
+                <th className="py-3 px-4 text-right">Segment Exposure ($)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {segmentRiskCrossMatrix.map((row, idx) => {
+                const isSegmentSelected = selectedSegment === row.segment;
+                const color = SEGMENT_COLORS[row.segment] || DEFAULT_SEGMENT_COLOR;
+
+                return (
+                  <tr key={idx} className={isSegmentSelected ? 'bg-indigo-50/40' : 'hover:bg-slate-50/60'}>
+                    <td className="py-3 px-4 font-semibold text-slate-900 flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color.dot }} />
+                      <div>
+                        <div className="font-bold">{row.segment}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{row.total} Cardholders · Avg PD {row.avgPd.toFixed(1)}%</div>
+                      </div>
+                    </td>
+
+                    {/* Low Risk Cell */}
+                    <td
+                      onClick={() => {
+                        setSelectedSegment(row.segment);
+                        setMatrixRiskFilter('Low');
+                      }}
+                      className={`py-3 px-4 text-center border-x border-slate-200 cursor-pointer transition-all ${
+                        isSegmentSelected && matrixRiskFilter === 'Low'
+                          ? 'bg-emerald-200/80 font-bold ring-2 ring-emerald-500'
+                          : 'hover:bg-emerald-100/60'
+                      }`}
+                    >
+                      <div className="font-bold text-emerald-900">{row.low.count} ({row.low.pct.toFixed(0)}%)</div>
+                      <div className="text-[10px] text-emerald-700 font-mono">${row.low.exposure.toLocaleString()}</div>
+                    </td>
+
+                    {/* Medium Risk Cell */}
+                    <td
+                      onClick={() => {
+                        setSelectedSegment(row.segment);
+                        setMatrixRiskFilter('Medium');
+                      }}
+                      className={`py-3 px-4 text-center border-r border-slate-200 cursor-pointer transition-all ${
+                        isSegmentSelected && matrixRiskFilter === 'Medium'
+                          ? 'bg-amber-200/80 font-bold ring-2 ring-amber-500'
+                          : 'hover:bg-amber-100/60'
+                      }`}
+                    >
+                      <div className="font-bold text-amber-900">{row.med.count} ({row.med.pct.toFixed(0)}%)</div>
+                      <div className="text-[10px] text-amber-700 font-mono">${row.med.exposure.toLocaleString()}</div>
+                    </td>
+
+                    {/* High Risk Cell */}
+                    <td
+                      onClick={() => {
+                        setSelectedSegment(row.segment);
+                        setMatrixRiskFilter('High');
+                      }}
+                      className={`py-3 px-4 text-center border-r border-slate-200 cursor-pointer transition-all ${
+                        isSegmentSelected && matrixRiskFilter === 'High'
+                          ? 'bg-rose-200/80 font-bold ring-2 ring-rose-500'
+                          : 'hover:bg-rose-100/60'
+                      }`}
+                    >
+                      <div className="font-bold text-rose-900">{row.high.count} ({row.high.pct.toFixed(0)}%)</div>
+                      <div className="text-[10px] text-rose-700 font-mono">${row.high.exposure.toLocaleString()}</div>
+                    </td>
+
+                    {/* Segment Exposure Total */}
+                    <td className="py-3 px-4 text-right font-mono font-bold text-slate-800">
+                      ${row.totalExposure.toLocaleString()}
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {/* Portfolio Totals Row */}
+              <tr className="bg-slate-50 font-bold text-slate-900 border-t-2 border-slate-300">
+                <td className="py-3 px-4">Portfolio Aggregate Total</td>
+                <td className="py-3 px-4 text-center border-x border-slate-200 text-emerald-800">
+                  {segmentRiskCrossMatrix.reduce((s, r) => s + r.low.count, 0)} accounts
+                  <div className="text-[10px] font-mono text-emerald-700">
+                    ${segmentRiskCrossMatrix.reduce((s, r) => s + r.low.exposure, 0).toLocaleString()}
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-center border-r border-slate-200 text-amber-800">
+                  {segmentRiskCrossMatrix.reduce((s, r) => s + r.med.count, 0)} accounts
+                  <div className="text-[10px] font-mono text-amber-700">
+                    ${segmentRiskCrossMatrix.reduce((s, r) => s + r.med.exposure, 0).toLocaleString()}
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-center border-r border-slate-200 text-rose-800">
+                  {segmentRiskCrossMatrix.reduce((s, r) => s + r.high.count, 0)} accounts
+                  <div className="text-[10px] font-mono text-rose-700">
+                    ${segmentRiskCrossMatrix.reduce((s, r) => s + r.high.exposure, 0).toLocaleString()}
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-right font-mono font-black">
+                  ${segmentRiskCrossMatrix.reduce((s, r) => s + r.totalExposure, 0).toLocaleString()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 

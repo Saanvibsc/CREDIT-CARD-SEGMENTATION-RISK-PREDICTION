@@ -13,13 +13,12 @@ interface TopNavProps {
 
 const NAV_ITEMS: { id: NavPage; label: string }[] = [
   { id: 'customer-dashboard', label: 'Customer Dashboard' },
-  { id: 'segment-dashboard', label: 'Segment Dashboard' },
-  { id: 'prediction', label: 'Prediction' },
-  { id: 'search', label: 'Search Customers' },
-  { id: 'assessment', label: 'Risk Analysis' },
-  { id: 'alerts', label: 'Alerts' },
-  { id: 'reports', label: 'Reports' },
-  { id: 'upload-report', label: 'Upload Report' },
+  { id: 'segment-dashboard', label: 'Segment & Matrix' },
+  { id: 'prediction', label: 'ML Prediction & Benchmarks' },
+  { id: 'alerts', label: 'Surveillance Alerts' },
+  { id: 'reports', label: 'Audit & Reports' },
+  { id: 'search', label: 'Customer Directory' },
+  { id: 'explanation', label: 'Explanation & Guide' },
 ];
 
 export const TopNav: React.FC<TopNavProps> = ({
@@ -51,7 +50,7 @@ export const TopNav: React.FC<TopNavProps> = ({
 
   const handleSelect = (id: string) => {
     onSelectCustomer(id);
-    onNavigate('assessment');
+    onNavigate('customer-dashboard');
     setSearchQuery('');
     setShowQuickResults(false);
     setMobileMenuOpen(false);

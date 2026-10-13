@@ -1,10 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent, DragEvent } from 'react';
 import { 
   Download, 
   CheckCircle2, 
-  ArrowRight
+  ArrowRight,
+  Upload,
+  AlertTriangle,
+  ArrowDown,
+  ShieldCheck,
+  Sparkles,
+  FileText
 } from 'lucide-react';
-import { Customer, RiskConfig, ComputedRiskAssessment, DataSourceType, FactorContribution } from '../types';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { Customer, RiskConfig, ComputedRiskAssessment, DataSourceType, FactorContribution, PredictionResponse } from '../types';
 import { api } from '../services/api';
 import { NavPage } from './Sidebar';
 
@@ -14,6 +21,51 @@ interface RiskReportsProps {
   config: RiskConfig;
   onSelectCustomer: (customerId: string) => void;
   onNavigate: (page: NavPage) => void;
+  initialMode?: 'generate' | 'verify';
+}
+
+interface PredictionComparison {
+  customer: Customer;
+  current: PredictionResponse;
+  onTime: PredictionResponse;
+  projectedLatePayments: number;
+}
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_PDF_PAGES = 20;
+
+async function extractCustomerId(file: File): Promise<string> {
+  const pdfjs = await import('pdfjs-dist');
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+  const loadingTask = pdfjs.getDocument({
+    data: new Uint8Array(await file.arrayBuffer()),
+  });
+  const document = await loadingTask.promise;
+  try {
+    if (document.numPages > MAX_PDF_PAGES) {
+      throw new Error(`PDFs are limited to ${MAX_PDF_PAGES} pages.`);
+    }
+
+    const pageText: string[] = [];
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      const content = await page.getTextContent();
+      pageText.push(content.items
+        .filter((item: any) => 'str' in item)
+        .map((item: any) => item.str)
+        .join(' '));
+    }
+    const text = pageText.join('\n');
+    const idMatch =
+      text.match(/\b(?:customer\s*id|customer\s*identifier)\s*:?\s*(CUST\d{6})\b/i) ||
+      text.match(/\bREF\s*:\s*CG-AUDIT-(CUST\d{6})\b/i);
+    if (!idMatch) {
+      throw new Error('No CreditGuard customer ID was found. Upload a CreditGuard risk report PDF containing a customer ID such as CUST000001.');
+    }
+    return idMatch[1].toUpperCase();
+  } finally {
+    await loadingTask.destroy();
+  }
 }
 
 export const RiskReports: React.FC<RiskReportsProps> = ({
@@ -22,7 +74,9 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
   config,
   onSelectCustomer,
   onNavigate,
+  initialMode = 'generate'
 }) => {
+  const [activeTab, setActiveTab] = useState<'generate' | 'verify'>(initialMode);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [downloadError, setDownloadError] = useState('');
   const [reportData, setReportData] = useState<{
@@ -31,6 +85,13 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
     source: DataSourceType;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Upload verification states
+  const [comparison, setComparison] = useState<PredictionComparison | null>(null);
+  const [fileName, setFileName] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const fetchReport = async () => {
     setLoading(true);
@@ -62,6 +123,59 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
     }
   };
 
+  const analyzeFile = async (file?: File) => {
+    if (!file) return;
+    setUploadError('');
+    setComparison(null);
+    setFileName('');
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setUploadError('Upload a PDF risk report. CSV and spreadsheet files are not supported.');
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError('The PDF exceeds the 10 MB upload limit.');
+      return;
+    }
+
+    setUploadLoading(true);
+    try {
+      const customerId = await extractCustomerId(file);
+      const customer = await api.getCustomerById(customerId);
+      if (!customer) {
+        throw new Error(`Customer ${customerId} from the PDF was not found in the connected portfolio.`);
+      }
+
+      const projectedLatePayments = Math.max(0, customer.delayedPayments6M - 1);
+      const [current, onTime] = await Promise.all([
+        api.predictRisk(customer.id, undefined, config),
+        api.predictRisk(
+          customer.id,
+          { delayedPayments: projectedLatePayments },
+          config,
+        ),
+      ]);
+      setComparison({ customer, current, onTime, projectedLatePayments });
+      setFileName(file.name);
+    } catch (caught) {
+      console.error('Could not analyze uploaded PDF:', caught);
+      setUploadError(caught instanceof Error ? caught.message : 'Could not read this PDF report.');
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    void analyzeFile(event.target.files?.[0]);
+    event.target.value = '';
+  };
+
+  const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    void analyzeFile(event.dataTransfer.files[0]);
+  };
+
   if (loading || !reportData) {
     return (
       <div className="space-y-12 max-w-4xl mx-auto py-8 animate-pulse">
@@ -85,7 +199,123 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
         : `The model places this account in the high-risk band (score at or above ${config.highRiskLowerBound}). Review the account indicators and recommended actions before making a credit decision.`;
 
   return (
-    <div className="max-w-4xl mx-auto pb-16 space-y-10">
+    <div className="max-w-4xl mx-auto pb-16 space-y-8">
+      {/* Workspace Switcher */}
+      <div className="flex items-center gap-2 bg-white p-2 border border-gray-200 rounded-2xl shadow-xs">
+        <button
+          onClick={() => setActiveTab('generate')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'generate'
+              ? 'bg-[#14213d] text-white shadow-xs'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>Export Cardholder Audit Dossier</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('verify')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'verify'
+              ? 'bg-[#4338ca] text-white shadow-xs'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <Upload className="w-3.5 h-3.5" />
+          <span>Verify & Ingest PDF Audit Report</span>
+        </button>
+      </div>
+
+      {activeTab === 'verify' ? (
+        <div className="space-y-6">
+          <header className="border-b border-[#e5e7eb] pb-5">
+            <div className="border-l-4 border-[#4338ca] pl-6 sm:pl-8">
+              <div className="meta mb-2">Audit Report Verification</div>
+              <h1 className="text-3xl font-serif font-semibold tracking-tight text-[#1a1a1a]">
+                Ingest & Verify Audit PDF
+              </h1>
+              <p className="mt-1 max-w-3xl text-xs leading-5 text-gray-500">
+                Upload a CreditGuard risk-report PDF to verify its authenticity, inspect the customer ID, and evaluate an on-time payment counterfactual scenario.
+              </p>
+            </div>
+          </header>
+
+          <label
+            onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            className={`flex cursor-pointer flex-col items-center justify-center border-2 border-dashed px-6 py-12 text-center transition ${
+              isDragging ? 'border-[#4338ca] bg-indigo-50' : 'border-[#cbd5e1] bg-white hover:border-[#4338ca]'
+            }`}
+          >
+            <span className="mb-4 bg-indigo-50 p-3 text-[#4338ca]"><Upload className="h-6 w-6" /></span>
+            <span className="text-lg font-serif font-semibold text-[#1a1a1a]">
+              {uploadLoading ? 'Reading report and calculating scenarios…' : 'Drop a risk report PDF here'}
+            </span>
+            <span className="mt-1 text-xs text-gray-500">
+              or choose a PDF from your device · PDF only · up to 10 MB and 20 pages
+            </span>
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              onChange={handleChange}
+              disabled={uploadLoading}
+              className="sr-only"
+            />
+          </label>
+
+          {uploadError && (
+            <div className="border border-rose-300 bg-rose-50 p-4 text-xs text-rose-800 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{uploadError}</span>
+            </div>
+          )}
+
+          {comparison && (
+            <div className="border border-[#e5e7eb] bg-white p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div>
+                  <span className="text-xs uppercase font-mono text-gray-400">Verified Cardholder</span>
+                  <h3 className="text-base font-bold text-gray-900">{comparison.customer.fullName} ({comparison.customer.id})</h3>
+                </div>
+                <button
+                  onClick={() => {
+                    onSelectCustomer(comparison.customer.id);
+                    setActiveTab('generate');
+                  }}
+                  className="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded text-xs font-semibold cursor-pointer"
+                >
+                  View Full Dossier →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="text-gray-500 font-bold uppercase text-[10px]">Current Ingested Assessment</div>
+                  <div className="text-2xl font-bold font-serif text-gray-900 mt-1">
+                    {comparison.current.assessment.defaultProbability.toFixed(1)}% PD
+                  </div>
+                  <div className="text-gray-600 mt-0.5">
+                    Risk Tier: <span className="font-bold">{comparison.current.assessment.riskTier}</span> (Score {comparison.current.assessment.riskScore}/100)
+                  </div>
+                </div>
+
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <div className="text-emerald-800 font-bold uppercase text-[10px]">Projected On-Time Paydown</div>
+                  <div className="text-2xl font-bold font-serif text-emerald-900 mt-1">
+                    {comparison.onTime.assessment.defaultProbability.toFixed(1)}% PD
+                  </div>
+                  <div className="text-emerald-700 mt-0.5 font-medium">
+                    Projected drop of {(comparison.current.assessment.defaultProbability - comparison.onTime.assessment.defaultProbability).toFixed(1)}% with zero late payments
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-10">
       {/* Editorial Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div className="border-l-4 border-[#4338ca] pl-6 sm:pl-8">
@@ -340,5 +570,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
         </div>
       </div>
     </div>
+    )}
+  </div>
   );
 };
