@@ -183,21 +183,21 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
       console.error('AI assistant query error:', err);
       // Fallback structured analysis
       setAiResponse({
-        answer: `Underwriting Evaluation for ${activeCustomer.fullName} (${activeCustomer.id}): Revolving utilization stands at ${activeCustomer.creditUtilization.toFixed(1)}% with $${activeCustomer.outstandingBalance.toLocaleString()} outstanding against a $${activeCustomer.creditLimit.toLocaleString()} credit ceiling. Payment-to-minimum ratio of ${activeCustomer.paymentToMinRatio}x and ${activeCustomer.delayedPayments6M} late cycles in the past 6 months place this account in the ${assessment?.riskTier || 'Moderate'} risk bracket.`,
+        answer: `Underwriting Evaluation for ${activeCustomer.fullName} (${activeCustomer.id}): Revolving utilization stands at ${(Number(activeCustomer.creditUtilization) || 0).toFixed(1)}% with $${Number(activeCustomer.outstandingBalance || 0).toLocaleString()} outstanding against a $${Number(activeCustomer.creditLimit || 0).toLocaleString()} credit ceiling. Payment-to-minimum ratio of ${activeCustomer.paymentToMinRatio ?? 1}x and ${activeCustomer.delayedPayments6M ?? 0} late cycles in the past 6 months place this account in the ${assessment?.riskTier || 'Moderate'} risk bracket.`,
         keyFactors: [
-          `Credit Utilization: ${activeCustomer.creditUtilization.toFixed(1)}% (${activeCustomer.creditUtilization > 75 ? 'Critical' : 'Moderate'})`,
-          `Repayment Discipline: ${activeCustomer.delayedPayments6M} late payments in 6M`,
-          `Cash Advance Draws: ${activeCustomer.cashAdvanceCount6M} instances recorded`,
-          `Household Spend Velocity: $${activeCustomer.monthlyAverageSpend.toLocaleString()} / month`,
+          `Credit Utilization: ${(Number(activeCustomer.creditUtilization) || 0).toFixed(1)}% (${(Number(activeCustomer.creditUtilization) || 0) > 75 ? 'Critical' : 'Moderate'})`,
+          `Repayment Discipline: ${activeCustomer.delayedPayments6M ?? 0} late payments in 6M`,
+          `Cash Advance Draws: ${activeCustomer.cashAdvanceCount6M ?? 0} instances recorded`,
+          `Household Spend Velocity: $${Number(activeCustomer.monthlyAverageSpend ?? (Number(activeCustomer.outstandingBalance || 0) * 0.35)).toLocaleString()} / month`,
         ],
         recommendedActions: [
           assessment?.riskTier === 'High'
             ? 'Execute line curtailment: decrease credit limit by 25%.'
             : 'Maintain current revolving line with bi-weekly surveillance.',
           'Issue automated SMS payment alert 4 days prior to statement close date.',
-          'Review liquidity buffer against declared income ($' + activeCustomer.annualIncome.toLocaleString() + '/yr).'
+          'Review liquidity buffer against declared income ($' + Number(activeCustomer.annualIncome || 0).toLocaleString() + '/yr).'
         ],
-        draftNotice: `Subject: Important Advisory Regarding Your ${activeCustomer.cardType} Line of Credit\n\nDear ${activeCustomer.fullName},\n\nWe are conducting our periodic account review for card ending ${activeCustomer.id.slice(-4)}. To help ensure continued optimal account performance and maintain your credit health, our risk advisory desk has prepared customized repayment options for your current balance of $${activeCustomer.outstandingBalance.toLocaleString()}.\n\nPlease contact our dedicated account team at 1-800-CREDIT-GUARD or review your digital dashboard to view personalized payment plans.`
+        draftNotice: `Subject: Important Advisory Regarding Your ${activeCustomer.cardType || 'Credit Card'} Line of Credit\n\nDear ${activeCustomer.fullName},\n\nWe are conducting our periodic account review for card ending ${activeCustomer.id.slice(-4)}. To help ensure continued optimal account performance and maintain your credit health, our risk advisory desk has prepared customized repayment options for your current balance of $${Number(activeCustomer.outstandingBalance || 0).toLocaleString()}.\n\nPlease contact our dedicated account team at 1-800-CREDIT-GUARD or review your digital dashboard to view personalized payment plans.`
       });
     } finally {
       setAiLoading(false);
@@ -236,8 +236,8 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
   }
 
   // Pre-calculated values
-  const availableCredit = Math.max(0, activeCustomer.creditLimit - activeCustomer.outstandingBalance);
-  const util = activeCustomer.creditUtilization;
+  const availableCredit = Math.max(0, (Number(activeCustomer.creditLimit) || 0) - (Number(activeCustomer.outstandingBalance) || 0));
+  const util = activeCustomer.creditUtilization ?? (((Number(activeCustomer.outstandingBalance) || 0) / Math.max(1, Number(activeCustomer.creditLimit) || 1)) * 100);
   const isHighUtil = util >= 80;
   const isMedUtil = util >= 50 && util < 80;
 
@@ -346,7 +346,7 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
             >
               {filteredCustomers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.id} · {c.fullName} ({c.cardType} — {c.creditUtilization.toFixed(0)}% util)
+                  {c.id} · {c.fullName} ({c.cardType} — {(Number(c.creditUtilization) || 0).toFixed(0)}% util)
                 </option>
               ))}
             </select>
@@ -383,8 +383,8 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
           </div>
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-slate-900">{util.toFixed(1)}%</span>
-              <span className="text-xs text-slate-400">of ${activeCustomer.creditLimit.toLocaleString()} limit</span>
+              <span className="text-3xl font-black text-slate-900">{(Number(util) || 0).toFixed(1)}%</span>
+              <span className="text-xs text-slate-400">of ${Number(activeCustomer.creditLimit || 0).toLocaleString()} limit</span>
             </div>
             {/* Utilization Bar */}
             <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mt-3">
@@ -392,13 +392,13 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
                 className={`h-full rounded-full transition-all duration-500 ${
                   isHighUtil ? 'bg-rose-500' : isMedUtil ? 'bg-amber-500' : 'bg-emerald-500'
                 }`}
-                style={{ width: `${Math.min(100, util)}%` }}
+                style={{ width: `${Math.min(100, Math.max(0, Number(util) || 0))}%` }}
               />
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>Available Line:</span>
-            <span className="font-semibold text-slate-800">${availableCredit.toLocaleString()}</span>
+            <span className="font-semibold text-slate-800">${Number(availableCredit || 0).toLocaleString()}</span>
           </div>
         </div>
 
@@ -410,15 +410,15 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
           </div>
           <div>
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-black text-slate-900">${activeCustomer.outstandingBalance.toLocaleString()}</span>
+              <span className="text-3xl font-black text-slate-900">${Number(activeCustomer.outstandingBalance || 0).toLocaleString()}</span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Card: <span className="font-semibold text-slate-700">{activeCustomer.cardType}</span>
+              Card: <span className="font-semibold text-slate-700">{activeCustomer.cardType || 'Credit Card'}</span>
             </p>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>Spend Velocity:</span>
-            <span className="font-semibold text-slate-800">${activeCustomer.monthlyAverageSpend.toLocaleString()} / mo</span>
+            <span className="font-semibold text-slate-800">${Number(activeCustomer.monthlyAverageSpend ?? (Number(activeCustomer.outstandingBalance || 0) * 0.35)).toLocaleString()} / mo</span>
           </div>
         </div>
 
@@ -445,8 +445,8 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>Delinquency 6M:</span>
-            <span className={`font-semibold ${activeCustomer.delayedPayments6M > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-              {activeCustomer.delayedPayments6M} late cycles
+            <span className={`font-semibold ${Number(activeCustomer.delayedPayments6M || 0) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+              {activeCustomer.delayedPayments6M ?? 0} late cycles
             </span>
           </div>
         </div>
@@ -459,16 +459,16 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
           </div>
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-slate-900">{activeCustomer.paymentToMinRatio}x</span>
+              <span className="text-3xl font-black text-slate-900">{activeCustomer.paymentToMinRatio ?? 1}x</span>
               <span className="text-xs text-slate-400">vs Min Due</span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Cash Advance 6M: <span className="font-semibold text-slate-700">{activeCustomer.cashAdvanceCount6M} draws</span>
+              Cash Advance 6M: <span className="font-semibold text-slate-700">{activeCustomer.cashAdvanceCount6M ?? 0} draws</span>
             </p>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>Annual Income:</span>
-            <span className="font-semibold text-slate-800">${activeCustomer.annualIncome.toLocaleString()}</span>
+            <span className="font-semibold text-slate-800">${Number(activeCustomer.annualIncome || 0).toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -503,22 +503,22 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {activeCustomer.repaymentHistory?.map((cycle, idx) => {
-                    const ratio = cycle.minPaymentDue > 0 ? (cycle.paymentAmount / cycle.minPaymentDue).toFixed(1) : '1.0';
-                    const isLate = cycle.status === 'late' || (cycle.daysDelayed !== null && cycle.daysDelayed > 0);
+                    const ratio = Number(cycle?.minPaymentDue || 0) > 0 ? (Number(cycle?.paymentAmount || 0) / Number(cycle?.minPaymentDue || 1)).toFixed(1) : '1.0';
+                    const isLate = cycle?.status === 'late' || (cycle?.daysDelayed !== null && Number(cycle?.daysDelayed || 0) > 0);
                     return (
                       <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3 px-3 font-semibold text-slate-800 flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          {cycle.month}
+                          {cycle?.month || `Cycle ${idx + 1}`}
                         </td>
                         <td className="py-3 px-3 text-right font-mono text-slate-800">
-                          ${cycle.balance?.toLocaleString()}
+                          ${Number(cycle?.balance || 0).toLocaleString()}
                         </td>
                         <td className="py-3 px-3 text-right font-mono text-slate-500">
-                          ${cycle.minPaymentDue?.toLocaleString()}
+                          ${Number(cycle?.minPaymentDue || 0).toLocaleString()}
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-bold text-slate-900">
-                          ${cycle.paymentAmount?.toLocaleString()}
+                          ${Number(cycle?.paymentAmount || 0).toLocaleString()}
                         </td>
                         <td className="py-3 px-3 text-center">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -526,7 +526,7 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
                               ? 'bg-rose-100 text-rose-800 border border-rose-200'
                               : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                           }`}>
-                            {isLate ? `${cycle.daysDelayed || 30}d Delayed` : 'On-Time'}
+                            {isLate ? `${cycle?.daysDelayed || 30}d Delayed` : 'On-Time'}
                           </span>
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-semibold text-indigo-700">
@@ -701,7 +701,7 @@ export const CustomerWiseDashboard: React.FC<CustomerWiseDashboardProps> = ({
                   🔍 Cardholder Risk Dossier
                 </button>
                 <button
-                  onClick={() => handleAskCustomerAi(`Evaluate whether this cardholder should receive a credit line decrease or forbearance based on their ${activeCustomer.creditUtilization.toFixed(1)}% utilization and repayment history.`)}
+                  onClick={() => handleAskCustomerAi(`Evaluate whether this cardholder should receive a credit line decrease or forbearance based on their ${(Number(activeCustomer.creditUtilization) || 0).toFixed(1)}% utilization and repayment history.`)}
                   disabled={aiLoading}
                   className="text-[11px] px-2.5 py-1.5 rounded-lg bg-indigo-800/50 hover:bg-indigo-700 text-indigo-200 border border-indigo-600/40 transition-colors cursor-pointer text-left"
                 >

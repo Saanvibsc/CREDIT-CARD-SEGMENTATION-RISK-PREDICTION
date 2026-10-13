@@ -244,13 +244,13 @@ export const CustomerSegmentation: React.FC<CustomerSegmentationProps> = ({
                     {c.segment}
                   </td>
                   <td className="py-3 px-2 mono text-right text-gray-600">
-                    ${c.creditLimit.toLocaleString('en-US')}
+                    ${Number(c.creditLimit || 0).toLocaleString('en-US')}
                   </td>
                   <td className="py-3 px-2 mono text-right font-bold text-[#1a1a1a]">
-                    ${c.outstandingBalance.toLocaleString('en-US')}
+                    ${Number(c.outstandingBalance || 0).toLocaleString('en-US')}
                   </td>
                   <td className="py-3 px-2 mono text-right text-[#1a1a1a]">
-                    {c.creditUtilization.toFixed(1)}%
+                    {(Number(c.creditUtilization) || 0).toFixed(1)}%
                   </td>
                   <td className="py-3 px-2 text-right">
                     <button

@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Customer, RiskConfig } from './types';
-import { INITIAL_CUSTOMERS } from './data/mockData';
 import { DEFAULT_RISK_CONFIG } from './utils/scoringEngine';
 import { api } from './services/api';
 import { TopNav } from './components/TopNav';
@@ -22,8 +21,8 @@ import { UploadReport } from './components/UploadReport';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<NavPage>('customer-dashboard');
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>(INITIAL_CUSTOMERS[0]?.id || 'CUST000001');
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('CUST000001');
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [config, setConfig] = useState<RiskConfig>(DEFAULT_RISK_CONFIG);
   const [activeAlertCount, setActiveAlertCount] = useState<number>(6);
   const [apiRefreshKey, setApiRefreshKey] = useState<number>(0);
@@ -56,7 +55,7 @@ export default function App() {
   const activeCustomer =
     customers.find((c: Customer) => c.id === selectedCustomerId) ||
     customers[0] ||
-    INITIAL_CUSTOMERS[0];
+    null;
 
   return (
     <div className="min-h-screen bg-[#fdfcf9] text-[#1a1a1a] flex flex-col font-sans">

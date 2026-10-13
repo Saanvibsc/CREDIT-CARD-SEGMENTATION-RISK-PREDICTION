@@ -8,11 +8,13 @@ interface TopNavProps {
   onNavigate: (page: NavPage) => void;
   onSelectCustomer: (id: string) => void;
   activeAlertCount: number;
+  onToggleSidebar?: () => void;
 }
 
 const NAV_ITEMS: { id: NavPage; label: string }[] = [
   { id: 'customer-dashboard', label: 'Customer Dashboard' },
   { id: 'segment-dashboard', label: 'Segment Dashboard' },
+  { id: 'prediction', label: 'Prediction' },
   { id: 'search', label: 'Search Customers' },
   { id: 'assessment', label: 'Risk Analysis' },
   { id: 'alerts', label: 'Alerts' },
@@ -25,6 +27,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   onNavigate,
   onSelectCustomer,
   activeAlertCount,
+  onToggleSidebar,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuickResults, setShowQuickResults] = useState(false);

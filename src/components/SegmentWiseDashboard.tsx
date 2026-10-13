@@ -131,10 +131,10 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
     let highRiskCount = 0;
 
     activeCustomers.forEach((c) => {
-      totalExposure += c.outstandingBalance;
-      totalLimit += c.creditLimit;
-      totalIncome += c.annualIncome;
-      totalSpend += c.monthlyAverageSpend;
+      totalExposure += c.outstandingBalance ?? 0;
+      totalLimit += c.creditLimit ?? 0;
+      totalIncome += c.annualIncome ?? 0;
+      totalSpend += c.monthlyAverageSpend ?? (c.outstandingBalance * 0.35);
 
       const assessment = calculateRiskAssessment(c, config);
       sumDefaultRate += assessment.defaultProbability;
@@ -360,7 +360,7 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
             <span>Spend Velocity:</span>
-            <span className="font-semibold text-slate-800">${segmentStats.totalMonthlySpend.toLocaleString()}/mo</span>
+            <span className="font-semibold text-slate-800">${(segmentStats.totalMonthlySpend ?? 0).toLocaleString()}/mo</span>
           </div>
         </div>
 
@@ -452,10 +452,10 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-600 mt-1">
-                Balance: <span className="font-bold text-slate-900">${selectedDotCustomer.outstandingBalance.toLocaleString()}</span> ·
-                Utilization: <span className="font-bold text-slate-900">{selectedDotCustomer.creditUtilization.toFixed(1)}%</span> ·
-                Segment: <span className="font-semibold text-indigo-900">{selectedDotCustomer.segment}</span> ·
-                Delinquency 6M: <span className="font-semibold text-slate-800">{selectedDotCustomer.delayedPayments6M} late</span>
+                Balance: <span className="font-bold text-slate-900">${Number(selectedDotCustomer?.outstandingBalance || 0).toLocaleString()}</span> ·
+                Utilization: <span className="font-bold text-slate-900">{(Number(selectedDotCustomer?.creditUtilization) || 0).toFixed(1)}%</span> ·
+                Segment: <span className="font-semibold text-indigo-900">{selectedDotCustomer?.segment || 'Standard'}</span> ·
+                Delinquency 6M: <span className="font-semibold text-slate-800">{selectedDotCustomer?.delayedPayments6M ?? 0} late</span>
               </p>
             </div>
 
@@ -563,10 +563,10 @@ export const SegmentWiseDashboard: React.FC<SegmentWiseDashboardProps> = ({
                 <span className="font-mono text-[10px] text-indigo-300">{hoveredCustomer.id}</span>
               </div>
               <div className="text-slate-300 text-[11px]">
-                Balance: <span className="font-semibold text-white">${hoveredCustomer.outstandingBalance.toLocaleString()}</span>
+                Balance: <span className="font-semibold text-white">${Number(hoveredCustomer?.outstandingBalance || 0).toLocaleString()}</span>
               </div>
               <div className="text-slate-300 text-[11px]">
-                Utilization: <span className="font-semibold text-white">{hoveredCustomer.creditUtilization.toFixed(1)}%</span>
+                Utilization: <span className="font-semibold text-white">{(Number(hoveredCustomer?.creditUtilization) || 0).toFixed(1)}%</span>
               </div>
               <div className="text-slate-300 text-[11px]">
                 Segment: <span className="font-semibold text-indigo-300">{hoveredCustomer.segment}</span>

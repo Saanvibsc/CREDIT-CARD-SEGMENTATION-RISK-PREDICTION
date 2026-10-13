@@ -255,12 +255,12 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
                         <span className="block text-[11px] text-gray-500 font-sans">{c.fullName}</span>
                       </td>
                       <td className="py-3 px-2 mono">
-                        <span className="text-[#1a1a1a] font-bold">${c.outstandingBalance.toLocaleString('en-US')}</span>
-                        <span className="block text-[10px] text-gray-400">limit ${c.creditLimit.toLocaleString('en-US')}</span>
+                        <span className="text-[#1a1a1a] font-bold">${Number(c.outstandingBalance || 0).toLocaleString('en-US')}</span>
+                        <span className="block text-[10px] text-gray-400">limit ${Number(c.creditLimit || 0).toLocaleString('en-US')}</span>
                       </td>
                       <td className="py-3 px-2 mono">
-                        <span className={c.creditUtilization > 80 ? 'text-[#be123c] font-bold' : 'text-[#1a1a1a]'}>
-                          {c.creditUtilization.toFixed(0)}%
+                        <span className={(Number(c.creditUtilization) || 0) > 80 ? 'text-[#be123c] font-bold' : 'text-[#1a1a1a]'}>
+                          {(Number(c.creditUtilization) || 0).toFixed(0)}%
                         </span>
                       </td>
                       <td className="py-3 px-2">
@@ -313,21 +313,21 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
               <div className="border-b border-[#e5e7eb] pb-2">
                 <span className="meta">Credit Limit</span>
                 <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">
-                  ${activeCustomer.creditLimit.toLocaleString('en-US')}
+                  ${Number(activeCustomer.creditLimit || 0).toLocaleString('en-US')}
                 </div>
               </div>
 
               <div className="border-b border-[#e5e7eb] pb-2">
                 <span className="meta">Current Balance</span>
                 <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">
-                  ${activeCustomer.outstandingBalance.toLocaleString('en-US')}
+                  ${Number(activeCustomer.outstandingBalance || 0).toLocaleString('en-US')}
                 </div>
               </div>
 
               <div className="border-b border-[#e5e7eb] pb-2">
                 <span className="meta">Annual Income</span>
                 <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">
-                  ${activeCustomer.annualIncome.toLocaleString('en-US')}
+                  ${Number(activeCustomer.annualIncome || 0).toLocaleString('en-US')}
                 </div>
               </div>
 

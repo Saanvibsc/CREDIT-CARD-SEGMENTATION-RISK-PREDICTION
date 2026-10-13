@@ -281,20 +281,20 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
             <div className="border border-[#e5e7eb] p-4">
               <span className="meta">Credit Card Used</span>
               <div className="text-3xl font-serif font-bold text-[#1a1a1a] mt-1">
-                {(isSimulating ? simUtilization : customer.creditUtilization).toFixed(1)}%
+                {(isSimulating ? simUtilization : (Number(customer.creditUtilization) || 0)).toFixed(1)}%
               </div>
               <span className="mono text-[10px] text-gray-500 mt-1 block">
-                ${customer.outstandingBalance.toLocaleString('en-US')} of ${customer.creditLimit.toLocaleString('en-US')} limit
+                ${Number(customer.outstandingBalance || 0).toLocaleString('en-US')} of ${Number(customer.creditLimit || 0).toLocaleString('en-US')} limit
               </span>
             </div>
 
             <div className="border border-[#e5e7eb] p-4">
               <span className="meta">Late Payments (6 Mos)</span>
               <div className="text-3xl font-serif font-bold text-[#1a1a1a] mt-1">
-                {isSimulating ? simDelays : customer.delayedPayments6M}
+                {isSimulating ? simDelays : (customer.delayedPayments6M ?? 0)}
               </div>
               <span className="mono text-[10px] text-gray-500 mt-1 block">
-                {customer.paymentToMinRatio.toFixed(1)}x paid vs minimum
+                {(Number(customer.paymentToMinRatio) || 1).toFixed(1)}x paid vs minimum
               </span>
             </div>
           </div>
@@ -304,7 +304,7 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
             <div>
               <span className="meta">Annual Income</span>
               <span className="mono font-bold text-[#1a1a1a] block mt-1">
-                ${Math.round(customer.annualIncome * (1 + simIncomeFactor / 100)).toLocaleString('en-US')}
+                ${Math.round(Number(customer.annualIncome || 0) * (1 + simIncomeFactor / 100)).toLocaleString('en-US')}
               </span>
             </div>
             <div>
@@ -346,13 +346,13 @@ export const RiskAssessment: React.FC<RiskAssessmentProps> = ({
                 <div>
                   <span className="font-semibold text-[#1a1a1a]">{rec.month}</span>
                   <span className="mono text-[10px] text-gray-400 block">
-                    Balance: ${rec.balance.toLocaleString('en-US')} · Min Due: ${rec.minPaymentDue}
+                    Balance: ${Number(rec.balance || 0).toLocaleString('en-US')} · Min Due: ${Number(rec.minPaymentDue || 0).toLocaleString('en-US')}
                   </span>
                 </div>
 
                 <div className="text-right">
                   <div className="mono font-bold text-[#1a1a1a]">
-                    Paid: ${rec.paymentAmount.toLocaleString('en-US')}
+                    Paid: ${Number(rec.paymentAmount || 0).toLocaleString('en-US')}
                   </div>
                   <span className={`meta ${rec.status === 'on-time' ? 'text-emerald-700' : 'text-[#be123c]'}`}>
                     {rec.status === 'on-time' ? 'PAID ON TIME' : rec.daysDelayed === null ? 'LATE PAYMENT' : `${rec.daysDelayed} DAYS LATE`}

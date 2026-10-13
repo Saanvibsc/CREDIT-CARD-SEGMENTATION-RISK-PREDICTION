@@ -1,0 +1,1506 @@
+{
+  "model_name": "CreditGuard_Gradient_Boosting_Classifier_Pipeline",
+  "version": "2.2.0",
+  "algorithm": "Gradient Boosting Classifier",
+  "features": [
+    "utilization_rate",
+    "late_payment_count_6m",
+    "payment_coverage_ratio",
+    "debt_to_income_est",
+    "annual_income",
+    "credit_limit",
+    "cc_balance",
+    "age",
+    "employment_length_years",
+    "cash_advance_trx",
+    "credit_history_years"
+  ],
+  "feature_importances": {
+    "utilization_rate": 0.0,
+    "late_payment_count_6m": 0.0432,
+    "payment_coverage_ratio": 0.0,
+    "debt_to_income_est": 0.0,
+    "annual_income": 0.0,
+    "credit_limit": 0.0,
+    "cc_balance": 0.0,
+    "age": 0.0,
+    "employment_length_years": 0.0,
+    "cash_advance_trx": 0.0,
+    "credit_history_years": 0.0
+  },
+  "scaling_means": {
+    "utilization_rate": 0.4367,
+    "late_payment_count_6m": 0.72,
+    "payment_coverage_ratio": 14.7611,
+    "debt_to_income_est": 0.3027,
+    "annual_income": 114203.325,
+    "credit_limit": 22990.0,
+    "cc_balance": 7930.5525,
+    "age": 45.365,
+    "employment_length_years": 10.918,
+    "cash_advance_trx": 1.065,
+    "credit_history_years": 14.75
+  },
+  "scaling_stds": {
+    "utilization_rate": 0.2809,
+    "late_payment_count_6m": 1.4183,
+    "payment_coverage_ratio": 13.75,
+    "debt_to_income_est": 0.1567,
+    "annual_income": 56568.0728,
+    "credit_limit": 12532.8673,
+    "cc_balance": 5515.4664,
+    "age": 12.7847,
+    "employment_length_years": 6.1939,
+    "cash_advance_trx": 1.6778,
+    "credit_history_years": 7.8788
+  },
+  "estimator": {
+    "model_type": "GradientBoostingClassifier",
+    "algorithm": "Gradient Boosting Classifier",
+    "is_tree_ensemble": true,
+    "trees": [
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 0.19741535336089233,
+        "left": {
+          "leaf": false,
+          "feature": 5,
+          "threshold": -0.6375237032189646,
+          "left": {
+            "leaf": true,
+            "val": 0.3211277003920259
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.9165310615487713
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 3,
+          "threshold": 1.942083499738936,
+          "left": {
+            "leaf": true,
+            "val": 6.18279569892473
+          },
+          "right": {
+            "leaf": true,
+            "val": 2.314971274079081
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 1.607525020224409,
+        "left": {
+          "leaf": false,
+          "feature": 2,
+          "threshold": -0.8553529766938196,
+          "left": {
+            "leaf": true,
+            "val": 1.0227342114242053
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.7413825948512829
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 3,
+          "threshold": 1.999531204781254,
+          "left": {
+            "leaf": true,
+            "val": 2.80779919291884
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.564292840143216
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 0.19741535336089233,
+        "left": {
+          "leaf": false,
+          "feature": 5,
+          "threshold": -0.8768943051785257,
+          "left": {
+            "leaf": true,
+            "val": 0.4603964716542049
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.7673502394848668
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": -0.4196416303786846,
+          "left": {
+            "leaf": true,
+            "val": 2.1926128878791404
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.7288183079034761
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 1.607525020224409,
+        "left": {
+          "leaf": false,
+          "feature": 2,
+          "threshold": -0.8553529766938196,
+          "left": {
+            "leaf": true,
+            "val": 0.6438159757770375
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.6292375693313883
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 4,
+          "threshold": -1.1263301342779717,
+          "left": {
+            "leaf": true,
+            "val": 1.008302490549868
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.9580860555772654
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 1.607525020224409,
+        "left": {
+          "leaf": false,
+          "feature": 5,
+          "threshold": -0.8768943051785257,
+          "left": {
+            "leaf": true,
+            "val": 0.42078615884503734
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.6668948923555422
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 6,
+          "threshold": -0.6392120307702326,
+          "left": {
+            "leaf": true,
+            "val": 1.6806977150254416
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.8762793210620952
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 1.607525020224409,
+        "left": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": -0.5760783984602073,
+          "left": {
+            "leaf": true,
+            "val": 0.4534114157051506
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.6187161500784156
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 4,
+          "threshold": -1.1263301342779717,
+          "left": {
+            "leaf": true,
+            "val": 0.5869492789664792
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.5154133850245712
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 0,
+        "threshold": 1.400079849927031,
+        "left": {
+          "leaf": false,
+          "feature": 1,
+          "threshold": 2.3125798536561675,
+          "left": {
+            "leaf": true,
+            "val": -0.4190372606797829
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.2088797270356832
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": -0.5760783984602073,
+          "left": {
+            "leaf": true,
+            "val": 2.0706614039029514
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.10903325817206728
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 5,
+        "threshold": -0.8768943051785257,
+        "left": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": -0.4196416303786846,
+          "left": {
+            "leaf": true,
+            "val": 1.203719640919692
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.08245057124321081
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 0,
+          "threshold": 1.4712745741866242,
+          "left": {
+            "leaf": true,
+            "val": -0.7304892325154864
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.6580453248286253
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 5,
+        "threshold": -0.8768943051785257,
+        "left": {
+          "leaf": false,
+          "feature": 3,
+          "threshold": -0.151566195136648,
+          "left": {
+            "leaf": true,
+            "val": 1.7751731054367614
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.12419934864741554
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 0,
+          "threshold": 1.4712745741866242,
+          "left": {
+            "leaf": true,
+            "val": -0.6735179966433191
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.1063100632512766
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 1.607525020224409,
+        "left": {
+          "leaf": false,
+          "feature": 10,
+          "threshold": -0.0444230128927471,
+          "left": {
+            "leaf": true,
+            "val": 0.16510243063067312
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.6417764071098657
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 4,
+          "threshold": -1.1263301342779717,
+          "left": {
+            "leaf": true,
+            "val": 0.19267911822838238
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.3150991418389484
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 1.607525020224409,
+        "left": {
+          "leaf": false,
+          "feature": 5,
+          "threshold": -1.6747963117103963,
+          "left": {
+            "leaf": true,
+            "val": -1.0547016034533505
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.10114898703806834
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 4,
+          "threshold": -1.1263301342779717,
+          "left": {
+            "leaf": true,
+            "val": 0.15863137775485592
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.2272698160773834
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 5,
+        "threshold": -0.8768943051785257,
+        "left": {
+          "leaf": false,
+          "feature": 3,
+          "threshold": -0.151566195136648,
+          "left": {
+            "leaf": true,
+            "val": 1.2866244313687663
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.03684976072862209
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 0,
+          "threshold": 1.4712745741866242,
+          "left": {
+            "leaf": true,
+            "val": -0.5902488156661273
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.8658966117213887
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 0,
+        "threshold": 1.400079849927031,
+        "left": {
+          "leaf": false,
+          "feature": 10,
+          "threshold": 2.1386507635508605,
+          "left": {
+            "leaf": true,
+            "val": -0.27342941665788884
+          },
+          "right": {
+            "leaf": true,
+            "val": 2.685953222402162
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": -0.4196416303786846,
+          "left": {
+            "leaf": true,
+            "val": 1.3117839365852286
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.5204183673590776
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": 1.607525020224409,
+        "left": {
+          "leaf": false,
+          "feature": 10,
+          "threshold": -0.0444230128927471,
+          "left": {
+            "leaf": true,
+            "val": 0.16978011698040696
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.5533252459477902
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 3,
+          "threshold": 1.999531204781254,
+          "left": {
+            "leaf": true,
+            "val": 1.1154515604154136
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.14116676290312405
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 7,
+        "threshold": 1.692254738721871,
+        "left": {
+          "leaf": false,
+          "feature": 2,
+          "threshold": -0.7971711415461672,
+          "left": {
+            "leaf": true,
+            "val": 0.37169507770065513
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.4324712850496685
+          }
+        },
+        "right": {
+          "leaf": true,
+          "val": 1.6070039970437497
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 7,
+        "threshold": -1.8275725431123884,
+        "left": {
+          "leaf": true,
+          "val": -1.2310709213446298
+        },
+        "right": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": -1.3582622388678203,
+          "left": {
+            "leaf": true,
+            "val": 1.0218183171439839
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.12400654477044863
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 8,
+        "threshold": -1.3267840332969245,
+        "left": {
+          "leaf": false,
+          "feature": 2,
+          "threshold": -0.9520802776267919,
+          "left": {
+            "leaf": true,
+            "val": -1.3631796344104399
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.37405698580406715
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 3,
+          "threshold": 1.2207956475409452,
+          "left": {
+            "leaf": true,
+            "val": -0.10461717974964417
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.6585752000607747
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 7,
+        "threshold": 1.692254738721871,
+        "left": {
+          "leaf": false,
+          "feature": 4,
+          "threshold": -1.0973385155138105,
+          "left": {
+            "leaf": true,
+            "val": 0.3916300372188516
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.22599914651665173
+          }
+        },
+        "right": {
+          "leaf": true,
+          "val": 1.2616354199042858
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 4,
+        "threshold": -0.0034705972889474937,
+        "left": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": 1.5358179706403483,
+          "left": {
+            "leaf": true,
+            "val": 0.03214241513916663
+          },
+          "right": {
+            "leaf": true,
+            "val": 3.347238750054122
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 5,
+          "threshold": 1.3572313131107119,
+          "left": {
+            "leaf": true,
+            "val": -1.0455046607479157
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.6792740913796298
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 5,
+        "threshold": -1.6747963117103963,
+        "left": {
+          "leaf": true,
+          "val": -1.0009832319253735
+        },
+        "right": {
+          "leaf": false,
+          "feature": 5,
+          "threshold": -1.4354257097508352,
+          "left": {
+            "leaf": true,
+            "val": 0.6544095055415704
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.12583197549212413
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 8,
+        "threshold": -1.3267840332969245,
+        "left": {
+          "leaf": false,
+          "feature": 2,
+          "threshold": -0.9520802776267919,
+          "left": {
+            "leaf": true,
+            "val": -1.2793402178418856
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.30755089857131357
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 0,
+          "threshold": 1.3965201137140513,
+          "left": {
+            "leaf": true,
+            "val": -0.06649778524373386
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.604934913335764
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 7,
+        "threshold": -1.8275725431123884,
+        "left": {
+          "leaf": true,
+          "val": -1.1626305740148464
+        },
+        "right": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": -1.3582622388678203,
+          "left": {
+            "leaf": true,
+            "val": 0.8510008888031787
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.11283314571323481
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 9,
+        "threshold": 1.7493654113205985,
+        "left": {
+          "leaf": false,
+          "feature": 10,
+          "threshold": -0.08249988108653104,
+          "left": {
+            "leaf": true,
+            "val": 0.29662353452179624
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.6591876496756869
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 10,
+          "threshold": 0.20942277506581167,
+          "left": {
+            "leaf": true,
+            "val": -0.5872087257119027
+          },
+          "right": {
+            "leaf": true,
+            "val": 2.1331033047692745
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 7,
+        "threshold": -1.8275725431123884,
+        "left": {
+          "leaf": true,
+          "val": -1.100039233295981
+        },
+        "right": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": -1.3582622388678203,
+          "left": {
+            "leaf": true,
+            "val": 0.5766298154232996
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.07812554758021917
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 6,
+        "threshold": -0.5086700342591701,
+        "left": {
+          "leaf": false,
+          "feature": 9,
+          "threshold": 1.1533294960495257,
+          "left": {
+            "leaf": true,
+            "val": 0.01978560427866684
+          },
+          "right": {
+            "leaf": true,
+            "val": 2.1287517148315143
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 1,
+          "threshold": 2.3125798536561675,
+          "left": {
+            "leaf": true,
+            "val": -0.35312464485441575
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.027083016140215
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 5,
+        "threshold": -1.6747963117103963,
+        "left": {
+          "leaf": true,
+          "val": -0.950919245656914
+        },
+        "right": {
+          "leaf": false,
+          "feature": 6,
+          "threshold": -0.9873240214663991,
+          "left": {
+            "leaf": true,
+            "val": 1.007392663969495
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.12396918710723565
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 4,
+        "threshold": -0.0034705972889474937,
+        "left": {
+          "leaf": false,
+          "feature": 7,
+          "threshold": 1.5358179706403483,
+          "left": {
+            "leaf": true,
+            "val": 0.018456302573062563
+          },
+          "right": {
+            "leaf": true,
+            "val": 2.3157227688808506
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 5,
+          "threshold": 1.3572313131107119,
+          "left": {
+            "leaf": true,
+            "val": -1.0355548869859235
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.3120246455273963
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 10,
+        "threshold": -0.08249988108653104,
+        "left": {
+          "leaf": false,
+          "feature": 5,
+          "threshold": -0.2385726999530293,
+          "left": {
+            "leaf": true,
+            "val": 0.5501374320281617
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.32377068029964845
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 9,
+          "threshold": 1.7493654113205985,
+          "left": {
+            "leaf": true,
+            "val": -0.6403873811011115
+          },
+          "right": {
+            "leaf": true,
+            "val": 1.207773203216381
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 8,
+        "threshold": -1.3267840332969245,
+        "left": {
+          "leaf": false,
+          "feature": 2,
+          "threshold": -0.9520802776267919,
+          "left": {
+            "leaf": true,
+            "val": -1.0953351150458024
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.32111075899208735
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 0,
+          "threshold": 1.3965201137140513,
+          "left": {
+            "leaf": true,
+            "val": -0.04489244089535547
+          },
+          "right": {
+            "leaf": true,
+            "val": 0.5100962791290776
+          }
+        }
+      },
+      {
+        "leaf": false,
+        "feature": 1,
+        "threshold": -0.5076394800708659,
+        "left": {
+          "leaf": false,
+          "feature": 2,
+          "threshold": -0.7244438476116016,
+          "left": {
+            "leaf": true,
+            "val": 0.8892693158787138
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.05446923763093398
+          }
+        },
+        "right": {
+          "leaf": false,
+          "feature": 4,
+          "threshold": -1.2716417844251706,
+          "left": {
+            "leaf": true,
+            "val": 0.7643861418969428
+          },
+          "right": {
+            "leaf": true,
+            "val": -0.4245879167945568
+          }
+        }
+      }
+    ],
+    "F0": -1.8152899666382492,
+    "learning_rate": 0.2,
+    "weights": [],
+    "bias": null
+  },
+  "kmeans_clusters": [
+    {
+      "cluster_id": 0,
+      "name": "High-Balance Revolvers",
+      "description": "Substantial credit lines and revolving balances with regular service payments.",
+      "riskTier": "Medium",
+      "count": 119,
+      "portfolioPercentage": 59.5,
+      "defaultRatePct": 21.8,
+      "averageUtilizationPct": 62.5,
+      "averageBalance": 9491.94,
+      "averageIncome": 78366.15,
+      "averageLatePayments6M": 1.21,
+      "centroid": [
+        0.6703,
+        0.3455,
+        -0.7316,
+        -0.6335,
+        -0.6154,
+        0.2831
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "name": "Prime Transactors",
+      "description": "High liquidity, pristine payment history, low revolving utilization.",
+      "riskTier": "Low",
+      "count": 23,
+      "portfolioPercentage": 11.5,
+      "defaultRatePct": 4.3,
+      "averageUtilizationPct": 15.0,
+      "averageBalance": 5138.26,
+      "averageIncome": 112844.22,
+      "averageLatePayments6M": 0.0,
+      "centroid": [
+        -1.019,
+        -0.5076,
+        1.4975,
+        -0.024,
+        0.7848,
+        -0.5063
+      ]
+    },
+    {
+      "cluster_id": 2,
+      "name": "Prime Transactors",
+      "description": "High liquidity, pristine payment history, low revolving utilization.",
+      "riskTier": "Low",
+      "count": 37,
+      "portfolioPercentage": 18.5,
+      "defaultRatePct": 2.7,
+      "averageUtilizationPct": 16.9,
+      "averageBalance": 6074.05,
+      "averageIncome": 208294.38,
+      "averageLatePayments6M": 0.0,
+      "centroid": [
+        -0.9525,
+        -0.5076,
+        1.1788,
+        1.6633,
+        1.023,
+        -0.3366
+      ]
+    },
+    {
+      "cluster_id": 3,
+      "name": "Prime Transactors",
+      "description": "High liquidity, pristine payment history, low revolving utilization.",
+      "riskTier": "Low",
+      "count": 21,
+      "portfolioPercentage": 10.5,
+      "defaultRatePct": 0.0,
+      "averageUtilizationPct": 15.5,
+      "averageBalance": 5411.9,
+      "averageIncome": 152989.71,
+      "averageLatePayments6M": 0.0,
+      "centroid": [
+        -1.0039,
+        -0.5076,
+        0.4288,
+        0.6857,
+        0.8253,
+        -0.4567
+      ]
+    }
+  ],
+  "customer_oof_probabilities": {
+    "CUST000001": 0.0863,
+    "CUST000002": 0.0053,
+    "CUST000003": 0.0265,
+    "CUST000004": 0.0248,
+    "CUST000005": 0.0531,
+    "CUST000006": 0.9187,
+    "CUST000007": 0.0995,
+    "CUST000008": 0.9013,
+    "CUST000009": 0.0111,
+    "CUST000010": 0.026,
+    "CUST000011": 0.0248,
+    "CUST000012": 0.0162,
+    "CUST000013": 0.1635,
+    "CUST000014": 0.1972,
+    "CUST000015": 0.78,
+    "CUST000016": 0.0408,
+    "CUST000017": 0.1693,
+    "CUST000018": 0.0304,
+    "CUST000019": 0.0259,
+    "CUST000020": 0.041,
+    "CUST000021": 0.0257,
+    "CUST000022": 0.0151,
+    "CUST000023": 0.0232,
+    "CUST000024": 0.0913,
+    "CUST000025": 0.0282,
+    "CUST000026": 0.0325,
+    "CUST000027": 0.2855,
+    "CUST000028": 0.0721,
+    "CUST000029": 0.017,
+    "CUST000030": 0.3407,
+    "CUST000031": 0.0175,
+    "CUST000032": 0.0087,
+    "CUST000033": 0.1558,
+    "CUST000034": 0.0579,
+    "CUST000035": 0.0195,
+    "CUST000036": 0.0172,
+    "CUST000037": 0.1635,
+    "CUST000038": 0.0336,
+    "CUST000039": 0.0313,
+    "CUST000040": 0.01,
+    "CUST000041": 0.8611,
+    "CUST000042": 0.5538,
+    "CUST000043": 0.0105,
+    "CUST000044": 0.0209,
+    "CUST000045": 0.0223,
+    "CUST000046": 0.0087,
+    "CUST000047": 0.2499,
+    "CUST000048": 0.0159,
+    "CUST000049": 0.2796,
+    "CUST000050": 0.0047,
+    "CUST000051": 0.0087,
+    "CUST000052": 0.1993,
+    "CUST000053": 0.2433,
+    "CUST000054": 0.0111,
+    "CUST000055": 0.0362,
+    "CUST000056": 0.3446,
+    "CUST000057": 0.0113,
+    "CUST000058": 0.0144,
+    "CUST000059": 0.0423,
+    "CUST000060": 0.0208,
+    "CUST000061": 0.0322,
+    "CUST000062": 0.2184,
+    "CUST000063": 0.0276,
+    "CUST000064": 0.0518,
+    "CUST000065": 0.0721,
+    "CUST000066": 0.0333,
+    "CUST000067": 0.0105,
+    "CUST000068": 0.0111,
+    "CUST000069": 0.0194,
+    "CUST000070": 0.0781,
+    "CUST000071": 0.0104,
+    "CUST000072": 0.0569,
+    "CUST000073": 0.1973,
+    "CUST000074": 0.0276,
+    "CUST000075": 0.9393,
+    "CUST000076": 0.0231,
+    "CUST000077": 0.9436,
+    "CUST000078": 0.6777,
+    "CUST000079": 0.0087,
+    "CUST000080": 0.0306,
+    "CUST000081": 0.0632,
+    "CUST000082": 0.1665,
+    "CUST000083": 0.0053,
+    "CUST000084": 0.0072,
+    "CUST000085": 0.0211,
+    "CUST000086": 0.0354,
+    "CUST000087": 0.0178,
+    "CUST000088": 0.0161,
+    "CUST000089": 0.0122,
+    "CUST000090": 0.0296,
+    "CUST000091": 0.014,
+    "CUST000092": 0.0272,
+    "CUST000093": 0.0693,
+    "CUST000094": 0.9825,
+    "CUST000095": 0.2933,
+    "CUST000096": 0.0433,
+    "CUST000097": 0.9126,
+    "CUST000098": 0.0158,
+    "CUST000099": 0.0411,
+    "CUST000100": 0.0159,
+    "CUST000101": 0.0259,
+    "CUST000102": 0.6461,
+    "CUST000103": 0.268,
+    "CUST000104": 0.0198,
+    "CUST000105": 0.1689,
+    "CUST000106": 0.0557,
+    "CUST000107": 0.0135,
+    "CUST000108": 0.1048,
+    "CUST000109": 0.0111,
+    "CUST000110": 0.2384,
+    "CUST000111": 0.0599,
+    "CUST000112": 0.0171,
+    "CUST000113": 0.0462,
+    "CUST000114": 0.0328,
+    "CUST000115": 0.0328,
+    "CUST000116": 0.0301,
+    "CUST000117": 0.1294,
+    "CUST000118": 0.0599,
+    "CUST000119": 0.0139,
+    "CUST000120": 0.0047,
+    "CUST000121": 0.0159,
+    "CUST000122": 0.7965,
+    "CUST000123": 0.035,
+    "CUST000124": 0.859,
+    "CUST000125": 0.0472,
+    "CUST000126": 0.0047,
+    "CUST000127": 0.0472,
+    "CUST000128": 0.8555,
+    "CUST000129": 0.0198,
+    "CUST000130": 0.4035,
+    "CUST000131": 0.0328,
+    "CUST000132": 0.2328,
+    "CUST000133": 0.0134,
+    "CUST000134": 0.0864,
+    "CUST000135": 0.0379,
+    "CUST000136": 0.0169,
+    "CUST000137": 0.0188,
+    "CUST000138": 0.0246,
+    "CUST000139": 0.0355,
+    "CUST000140": 0.0389,
+    "CUST000141": 0.0267,
+    "CUST000142": 0.0832,
+    "CUST000143": 0.9808,
+    "CUST000144": 0.0195,
+    "CUST000145": 0.0174,
+    "CUST000146": 0.0267,
+    "CUST000147": 0.0209,
+    "CUST000148": 0.0047,
+    "CUST000149": 0.0269,
+    "CUST000150": 0.0139,
+    "CUST000151": 0.0114,
+    "CUST000152": 0.5777,
+    "CUST000153": 0.5327,
+    "CUST000154": 0.0449,
+    "CUST000155": 0.1407,
+    "CUST000156": 0.0137,
+    "CUST000157": 0.1363,
+    "CUST000158": 0.0359,
+    "CUST000159": 0.0322,
+    "CUST000160": 0.0366,
+    "CUST000161": 0.0359,
+    "CUST000162": 0.0088,
+    "CUST000163": 0.0098,
+    "CUST000164": 0.0086,
+    "CUST000165": 0.0087,
+    "CUST000166": 0.8962,
+    "CUST000167": 0.1158,
+    "CUST000168": 0.1271,
+    "CUST000169": 0.0047,
+    "CUST000170": 0.0403,
+    "CUST000171": 0.962,
+    "CUST000172": 0.0295,
+    "CUST000173": 0.0675,
+    "CUST000174": 0.0047,
+    "CUST000175": 0.2398,
+    "CUST000176": 0.0203,
+    "CUST000177": 0.022,
+    "CUST000178": 0.2172,
+    "CUST000179": 0.0414,
+    "CUST000180": 0.1582,
+    "CUST000181": 0.0477,
+    "CUST000182": 0.0581,
+    "CUST000183": 0.1084,
+    "CUST000184": 0.0328,
+    "CUST000185": 0.0172,
+    "CUST000186": 0.0102,
+    "CUST000187": 0.0764,
+    "CUST000188": 0.0203,
+    "CUST000189": 0.8397,
+    "CUST000190": 0.0171,
+    "CUST000191": 0.0265,
+    "CUST000192": 0.0488,
+    "CUST000193": 0.0416,
+    "CUST000194": 0.0111,
+    "CUST000195": 0.0806,
+    "CUST000196": 0.0664,
+    "CUST000197": 0.1388,
+    "CUST000198": 0.0446,
+    "CUST000199": 0.1176,
+    "CUST000200": 0.0172
+  },
+  "customer_cluster_assignments": {
+    "CUST000001": 0,
+    "CUST000002": 1,
+    "CUST000003": 3,
+    "CUST000004": 0,
+    "CUST000005": 0,
+    "CUST000006": 0,
+    "CUST000007": 3,
+    "CUST000008": 0,
+    "CUST000009": 2,
+    "CUST000010": 2,
+    "CUST000011": 0,
+    "CUST000012": 1,
+    "CUST000013": 0,
+    "CUST000014": 0,
+    "CUST000015": 0,
+    "CUST000016": 0,
+    "CUST000017": 0,
+    "CUST000018": 0,
+    "CUST000019": 2,
+    "CUST000020": 0,
+    "CUST000021": 1,
+    "CUST000022": 1,
+    "CUST000023": 0,
+    "CUST000024": 2,
+    "CUST000025": 1,
+    "CUST000026": 2,
+    "CUST000027": 0,
+    "CUST000028": 0,
+    "CUST000029": 0,
+    "CUST000030": 0,
+    "CUST000031": 0,
+    "CUST000032": 0,
+    "CUST000033": 0,
+    "CUST000034": 0,
+    "CUST000035": 0,
+    "CUST000036": 1,
+    "CUST000037": 0,
+    "CUST000038": 0,
+    "CUST000039": 2,
+    "CUST000040": 3,
+    "CUST000041": 0,
+    "CUST000042": 0,
+    "CUST000043": 1,
+    "CUST000044": 2,
+    "CUST000045": 1,
+    "CUST000046": 2,
+    "CUST000047": 0,
+    "CUST000048": 2,
+    "CUST000049": 0,
+    "CUST000050": 3,
+    "CUST000051": 2,
+    "CUST000052": 0,
+    "CUST000053": 0,
+    "CUST000054": 3,
+    "CUST000055": 2,
+    "CUST000056": 0,
+    "CUST000057": 0,
+    "CUST000058": 3,
+    "CUST000059": 1,
+    "CUST000060": 2,
+    "CUST000061": 2,
+    "CUST000062": 0,
+    "CUST000063": 1,
+    "CUST000064": 3,
+    "CUST000065": 0,
+    "CUST000066": 1,
+    "CUST000067": 0,
+    "CUST000068": 1,
+    "CUST000069": 0,
+    "CUST000070": 2,
+    "CUST000071": 0,
+    "CUST000072": 0,
+    "CUST000073": 0,
+    "CUST000074": 0,
+    "CUST000075": 0,
+    "CUST000076": 2,
+    "CUST000077": 0,
+    "CUST000078": 0,
+    "CUST000079": 0,
+    "CUST000080": 1,
+    "CUST000081": 2,
+    "CUST000082": 0,
+    "CUST000083": 2,
+    "CUST000084": 1,
+    "CUST000085": 0,
+    "CUST000086": 3,
+    "CUST000087": 3,
+    "CUST000088": 2,
+    "CUST000089": 2,
+    "CUST000090": 0,
+    "CUST000091": 0,
+    "CUST000092": 1,
+    "CUST000093": 0,
+    "CUST000094": 0,
+    "CUST000095": 0,
+    "CUST000096": 0,
+    "CUST000097": 0,
+    "CUST000098": 0,
+    "CUST000099": 3,
+    "CUST000100": 0,
+    "CUST000101": 1,
+    "CUST000102": 0,
+    "CUST000103": 0,
+    "CUST000104": 2,
+    "CUST000105": 0,
+    "CUST000106": 0,
+    "CUST000107": 2,
+    "CUST000108": 0,
+    "CUST000109": 2,
+    "CUST000110": 0,
+    "CUST000111": 3,
+    "CUST000112": 0,
+    "CUST000113": 0,
+    "CUST000114": 3,
+    "CUST000115": 3,
+    "CUST000116": 0,
+    "CUST000117": 0,
+    "CUST000118": 1,
+    "CUST000119": 0,
+    "CUST000120": 0,
+    "CUST000121": 0,
+    "CUST000122": 0,
+    "CUST000123": 3,
+    "CUST000124": 0,
+    "CUST000125": 0,
+    "CUST000126": 3,
+    "CUST000127": 0,
+    "CUST000128": 0,
+    "CUST000129": 2,
+    "CUST000130": 0,
+    "CUST000131": 3,
+    "CUST000132": 2,
+    "CUST000133": 0,
+    "CUST000134": 0,
+    "CUST000135": 0,
+    "CUST000136": 0,
+    "CUST000137": 0,
+    "CUST000138": 2,
+    "CUST000139": 2,
+    "CUST000140": 1,
+    "CUST000141": 2,
+    "CUST000142": 2,
+    "CUST000143": 0,
+    "CUST000144": 3,
+    "CUST000145": 0,
+    "CUST000146": 1,
+    "CUST000147": 0,
+    "CUST000148": 1,
+    "CUST000149": 0,
+    "CUST000150": 0,
+    "CUST000151": 0,
+    "CUST000152": 0,
+    "CUST000153": 0,
+    "CUST000154": 0,
+    "CUST000155": 0,
+    "CUST000156": 0,
+    "CUST000157": 0,
+    "CUST000158": 0,
+    "CUST000159": 0,
+    "CUST000160": 0,
+    "CUST000161": 0,
+    "CUST000162": 2,
+    "CUST000163": 3,
+    "CUST000164": 2,
+    "CUST000165": 2,
+    "CUST000166": 0,
+    "CUST000167": 0,
+    "CUST000168": 0,
+    "CUST000169": 0,
+    "CUST000170": 0,
+    "CUST000171": 0,
+    "CUST000172": 0,
+    "CUST000173": 3,
+    "CUST000174": 0,
+    "CUST000175": 0,
+    "CUST000176": 2,
+    "CUST000177": 3,
+    "CUST000178": 0,
+    "CUST000179": 0,
+    "CUST000180": 0,
+    "CUST000181": 0,
+    "CUST000182": 0,
+    "CUST000183": 0,
+    "CUST000184": 1,
+    "CUST000185": 2,
+    "CUST000186": 2,
+    "CUST000187": 0,
+    "CUST000188": 2,
+    "CUST000189": 0,
+    "CUST000190": 0,
+    "CUST000191": 1,
+    "CUST000192": 0,
+    "CUST000193": 1,
+    "CUST000194": 2,
+    "CUST000195": 0,
+    "CUST000196": 0,
+    "CUST000197": 2,
+    "CUST000198": 0,
+    "CUST000199": 0,
+    "CUST000200": 3
+  },
+  "metrics": {
+    "roc_auc": 0.8621,
+    "roc_auc_std": 0.0971,
+    "gini_coefficient": 0.7243,
+    "ks_statistic_pct": 64.2,
+    "brier_score": 0.0805,
+    "accuracy": 0.9,
+    "precision": 0.7,
+    "recall": 0.5,
+    "f1_score": 0.5833
+  },
+  "model_comparison": [
+    {
+      "model_name": "Gradient Boosting Classifier",
+      "model_type": "GradientBoostingClassifier",
+      "roc_auc": 0.8621,
+      "roc_auc_std": 0.0971,
+      "gini_coefficient": 0.7243,
+      "ks_statistic_pct": 64.2,
+      "brier_score": 0.0805,
+      "precision": 0.7,
+      "recall": 0.5,
+      "f1_score": 0.5833,
+      "accuracy_pct": 90.0,
+      "status": "Production Primary",
+      "description": "Sequential gradient boosted decision trees with Bernoulli loss shrinkage."
+    },
+    {
+      "model_name": "Random Forest Classifier",
+      "model_type": "RandomForestClassifier (24 Trees, Depth 3)",
+      "roc_auc": 0.8453,
+      "roc_auc_std": 0.1427,
+      "gini_coefficient": 0.6906,
+      "ks_statistic_pct": 62.54,
+      "brier_score": 0.0789,
+      "precision": 0.7619,
+      "recall": 0.5714,
+      "f1_score": 0.6531,
+      "accuracy_pct": 91.5,
+      "status": "Challenger",
+      "description": "Ensemble of decision trees with bagging and random feature subsampling."
+    },
+    {
+      "model_name": "Gaussian Naive Bayes",
+      "model_type": "GaussianNB",
+      "roc_auc": 0.8355,
+      "roc_auc_std": 0.0931,
+      "gini_coefficient": 0.6711,
+      "ks_statistic_pct": 60.8,
+      "brier_score": 0.1214,
+      "precision": 0.4872,
+      "recall": 0.6786,
+      "f1_score": 0.5672,
+      "accuracy_pct": 85.5,
+      "status": "Challenger",
+      "description": "Probabilistic classifier applying Bayes theorem with Gaussian likelihoods."
+    },
+    {
+      "model_name": "Regularized Logistic Regression",
+      "model_type": "LogisticRegression (L2 Regularized)",
+      "roc_auc": 0.8331,
+      "roc_auc_std": 0.111,
+      "gini_coefficient": 0.6661,
+      "ks_statistic_pct": 59.63,
+      "brier_score": 0.1221,
+      "precision": 0.4865,
+      "recall": 0.6429,
+      "f1_score": 0.5538,
+      "accuracy_pct": 85.5,
+      "status": "Challenger",
+      "description": "Traditional Basel II benchmark linear model with odds ratios."
+    }
+  ],
+  "dataset_info": {
+    "total_records": 200,
+    "defaults": 28,
+    "default_rate": 0.14,
+    "data_path": "/app/applet/data/combined_credit_risk_realistic_with_ids.csv",
+    "zero_leakage_cv": "Evaluated via 5-Fold Stratified Cross-Validation with fold-specific feature standardizers."
+  },
+  "trained_at": "2026-10-13T01:21:04.590908"
+}

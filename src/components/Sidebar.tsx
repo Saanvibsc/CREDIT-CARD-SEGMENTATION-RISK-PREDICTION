@@ -11,7 +11,8 @@ import {
   Shield, 
   ChevronRight, 
   X,
-  PieChart
+  PieChart,
+  Cpu
 } from 'lucide-react';
 import { NavPage } from '../types';
 
@@ -28,6 +29,7 @@ export interface SidebarProps {
 const NAV_ITEMS: { id: NavPage; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'customer-dashboard', label: 'Customer Dashboard', icon: User },
   { id: 'segment-dashboard', label: 'Segment Dashboard', icon: PieChart },
+  { id: 'prediction', label: 'Prediction', icon: Cpu },
   { id: 'search', label: 'Search Customers', icon: Search },
   { id: 'assessment', label: 'Risk Analysis', icon: ShieldAlert },
   { id: 'alerts', label: 'Early-Warning Alerts', icon: BellRing },

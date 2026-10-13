@@ -69,35 +69,35 @@ export function generateRiskReportPDF(customer, assessment) {
   doc.setTextColor(100, 116, 139);
   doc.text('Annual Income:', col3, y + 6);
   doc.setTextColor(15, 23, 42);
-  doc.text(`$${Number(customer.annualIncome).toLocaleString('en-US')}`, col4, y + 6);
+  doc.text(`$${Number(customer.annualIncome || 0).toLocaleString('en-US')}`, col4, y + 6);
 
   // Row 2
   doc.setTextColor(100, 116, 139);
   doc.text('Customer Name:', col1, y + 13);
   doc.setTextColor(15, 23, 42);
-  doc.text(customer.fullName, col2, y + 13);
+  doc.text(customer.fullName || 'Cardholder', col2, y + 13);
 
   doc.setTextColor(100, 116, 139);
   doc.text('Card Product Type:', col3, y + 13);
   doc.setTextColor(15, 23, 42);
-  doc.text(customer.cardType, col4, y + 13);
+  doc.text(customer.cardType || 'Standard', col4, y + 13);
 
   // Row 3
   doc.setTextColor(100, 116, 139);
   doc.text('Credit Card Limit:', col1, y + 20);
   doc.setTextColor(15, 23, 42);
-  doc.text(`$${Number(customer.creditLimit).toLocaleString('en-US')}`, col2, y + 20);
+  doc.text(`$${Number(customer.creditLimit || 0).toLocaleString('en-US')}`, col2, y + 20);
 
   doc.setTextColor(100, 116, 139);
   doc.text('Current Balance:', col3, y + 20);
   doc.setTextColor(15, 23, 42);
-  doc.text(`$${Number(customer.outstandingBalance).toLocaleString('en-US')}`, col4, y + 20);
+  doc.text(`$${Number(customer.outstandingBalance || 0).toLocaleString('en-US')}`, col4, y + 20);
 
   // Row 4
   doc.setTextColor(100, 116, 139);
   doc.text('Card Limit Used (%):', col1, y + 26);
   doc.setTextColor(15, 23, 42);
-  doc.text(`${Number(customer.creditUtilization).toFixed(1)}%`, col2, y + 26);
+  doc.text(`${Number(customer.creditUtilization || 0).toFixed(1)}%`, col2, y + 26);
 
   doc.setTextColor(100, 116, 139);
   doc.text('Customer Group:', col3, y + 26);

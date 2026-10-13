@@ -7,6 +7,7 @@ export type NavPage =
   | 'customer-dashboard'
   | 'segment-dashboard'
   | 'dashboard'
+  | 'prediction'
   | 'search'
   | 'assessment'
   | 'alerts'

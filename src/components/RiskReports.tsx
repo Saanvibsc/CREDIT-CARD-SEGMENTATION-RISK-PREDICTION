@@ -180,7 +180,7 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
             </div>
             <div>
               <span className="meta">Annual Income</span>
-              <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${customer.annualIncome.toLocaleString('en-US')}</div>
+              <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${Number(customer.annualIncome || 0).toLocaleString('en-US')}</div>
             </div>
             <div>
               <span className="meta">Card Type</span>
@@ -189,15 +189,15 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
 
             <div>
               <span className="meta">Credit Card Limit</span>
-              <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${customer.creditLimit.toLocaleString('en-US')}</div>
+              <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${Number(customer.creditLimit || 0).toLocaleString('en-US')}</div>
             </div>
             <div>
               <span className="meta">Current Balance</span>
-              <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${customer.outstandingBalance.toLocaleString('en-US')}</div>
+              <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">${Number(customer.outstandingBalance || 0).toLocaleString('en-US')}</div>
             </div>
             <div>
               <span className="meta">Card Limit Used (%)</span>
-              <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">{customer.creditUtilization.toFixed(1)}%</div>
+              <div className="mono font-bold text-sm text-[#1a1a1a] mt-0.5">{(Number(customer.creditUtilization) || 0).toFixed(1)}%</div>
             </div>
             <div>
               <span className="meta">Customer Group</span>
@@ -211,8 +211,8 @@ export const RiskReports: React.FC<RiskReportsProps> = ({
             <h3 className="meta font-bold text-[#4338ca]">Assessment narrative</h3>
             <p className="mt-2 text-sm leading-6 text-[#1a1a1a]">
               {customer.fullName} holds a {customer.cardType} account in the {customer.segment || 'unassigned'} segment.
-              The current balance is ${customer.outstandingBalance.toLocaleString('en-US')} against a
-              ${customer.creditLimit.toLocaleString('en-US')} limit ({customer.creditUtilization.toFixed(1)}% utilization).
+              The current balance is ${Number(customer.outstandingBalance || 0).toLocaleString('en-US')} against a
+              ${Number(customer.creditLimit || 0).toLocaleString('en-US')} limit ({(Number(customer.creditUtilization) || 0).toFixed(1)}% utilization).
               The assessment estimates a {assessment.defaultProbability.toFixed(1)}% default probability and assigns
               a risk score of {assessment.riskScore}/100.
             </p>
