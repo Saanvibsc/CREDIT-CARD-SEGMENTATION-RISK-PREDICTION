@@ -10,7 +10,7 @@ import { EarlyWarningAlert } from './src/types.ts';
 import { GoogleGenAI } from '@google/genai';
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const FLASK_PORT = 5000;
 const PYTHON_EXECUTABLE = process.platform === 'win32' ? 'python' : 'python3';
 
@@ -255,35 +255,45 @@ function generateAlertsFromCustomers(custList: any[]): EarlyWarningAlert[] {
 const customers = loadCustomersFromCsv();
 const alerts: EarlyWarningAlert[] = generateAlertsFromCustomers(customers);
 
-// Spawn Python backend on FLASK_PORT (5000)
+// Spawn Python backend on FLASK_PORT (5000) if python is installed in environment
 let pythonBackendProcess: ChildProcess | null = null;
 function startPythonBackend() {
-  if (fs.existsSync('app.py')) {
-    try {
-      console.log(`[CreditGuard AI] Starting Python backend server on port ${FLASK_PORT}...`);
-      pythonBackendProcess = spawn(PYTHON_EXECUTABLE, ['app.py'], {
-        cwd: process.cwd(),
-        env: { ...process.env, PORT: String(FLASK_PORT), PYTHONUNBUFFERED: '1' },
-        stdio: ['ignore', 'pipe', 'pipe']
-      });
+  // Only attempt if app.py exists
+  if (!fs.existsSync('app.py')) return;
 
-      pythonBackendProcess.stdout?.on('data', (d) => {
-        const out = d.toString().trim();
-        if (out) console.log(`[Python Backend] ${out}`);
-      });
+  try {
+    console.log(`[CreditGuard AI] Checking optional Python backend availability...`);
+    const proc = spawn(PYTHON_EXECUTABLE, ['app.py'], {
+      cwd: process.cwd(),
+      env: { ...process.env, PORT: String(FLASK_PORT), PYTHONUNBUFFERED: '1' },
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
 
-      pythonBackendProcess.stderr?.on('data', (d) => {
-        const err = d.toString().trim();
-        if (err) console.warn(`[Python Backend Warning] ${err}`);
-      });
+    proc.on('error', (err) => {
+      // In production containers (e.g. Cloud Run standard Node.js image), python3 is not installed (ENOENT).
+      // Node.js server has 100% native implementations of all ML model scoring, KMeans clusters, and metrics!
+      console.log(`[CreditGuard AI] Python backend not available in this container environment (${err.message}). Using native TypeScript/Node ML inference engine.`);
+      pythonBackendProcess = null;
+    });
 
-      pythonBackendProcess.on('exit', (code) => {
-        console.log(`[Python Backend] Exited with code ${code}`);
-        pythonBackendProcess = null;
-      });
-    } catch (err) {
-      console.warn('[CreditGuard AI] Could not spawn Python backend:', err);
-    }
+    proc.stdout?.on('data', (d) => {
+      const out = d.toString().trim();
+      if (out) console.log(`[Python Backend] ${out}`);
+    });
+
+    proc.stderr?.on('data', (d) => {
+      const err = d.toString().trim();
+      if (err) console.warn(`[Python Backend Warning] ${err}`);
+    });
+
+    proc.on('exit', (code) => {
+      console.log(`[Python Backend] Exited with code ${code}`);
+      pythonBackendProcess = null;
+    });
+
+    pythonBackendProcess = proc;
+  } catch (err: any) {
+    console.log(`[CreditGuard AI] Python backend spawn skipped (${err?.message}). Running with native engine.`);
   }
 }
 
@@ -828,10 +838,19 @@ async function startServer() {
     const distPath = path.resolve(process.cwd(), 'dist');
     if (fs.existsSync(distPath)) {
       app.use(express.static(distPath));
-      app.get('*', (req, res) => {
-        res.sendFile(path.join(distPath, 'index.html'));
-      });
     }
+    app.use((req, res) => {
+      if (req.path.startsWith('/api')) {
+        res.status(404).json({ error: 'Endpoint not found' });
+      } else {
+        const indexPath = path.join(distPath, 'index.html');
+        if (fs.existsSync(indexPath)) {
+          res.sendFile(indexPath);
+        } else {
+          res.status(404).send('Not Found');
+        }
+      }
+    });
   }
 
   app.listen(PORT, '0.0.0.0', () => {
